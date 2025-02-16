@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1366</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1366</width>
+    <height>768</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1366</width>
+    <height>768</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="panels">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1371</width>
+      <height>751</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <property name="tabBarAutoHide">
+     <bool>false</bool>
+    </property>
+    <widget class="QWidget" name="panel_1">
+     <attribute name="title">
+      <string>Data</string>
+     </attribute>
+     <widget class="QWidget" name="layoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>160</y>
+        <width>1174</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="fileLabel_2">
+         <property name="minimumSize">
+          <size>
+           <width>800</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>No File Selected</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="uploadButton_2">
+         <property name="minimumSize">
+          <size>
+           <width>280</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Upload File</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="remove_2">
+         <property name="text">
+          <string>Remove</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>110</y>
+        <width>1174</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="fileLabel">
+         <property name="minimumSize">
+          <size>
+           <width>800</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>No File Selected</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="uploadButton">
+         <property name="minimumSize">
+          <size>
+           <width>280</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Upload File</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="remove">
+         <property name="text">
+          <string>Remove</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="ConfigureTitle">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>20</y>
+        <width>661</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>36</pointsize>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Configure Input Data</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>550</y>
+        <width>1174</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_sf">
+       <item>
+        <widget class="QLabel" name="fileLabel_sf">
+         <property name="minimumSize">
+          <size>
+           <width>800</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>No File Selected</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="uploadButton_sf">
+         <property name="minimumSize">
+          <size>
+           <width>280</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Upload File</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="remove_sf">
+         <property name="text">
+          <string>Remove</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>550</y>
+        <width>265</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="GeoGrid">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout_13">
+         <item>
+          <widget class="QLabel" name="Min_Long_Label_4">
+           <property name="text">
+            <string>Minimun Longtitude</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="Min_Long_Value_4"/>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="1">
+        <layout class="QVBoxLayout" name="verticalLayout_14">
+         <item>
+          <widget class="QLabel" name="Min_Lat_Label_4">
+           <property name="text">
+            <string>Minimun Latittude</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="Min_Lat_Value_4"/>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout_15">
+         <item>
+          <widget class="QLabel" name="Max_Long_Label_4">
+           <property name="text">
+            <string>Maximum Longtitude</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="Max_Long_Value_4"/>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="1">
+        <layout class="QVBoxLayout" name="verticalLayout_16">
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Maximum Latitude</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_7"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="length_bit_text">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>400</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Bit Length:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="start_bit_text">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>370</y>
+        <width>57</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start Bit:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="compare_button">
+      <property name="geometry">
+       <rect>
+        <x>1166</x>
+        <y>620</y>
+        <width>80</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Compare</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="ROI_label">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>460</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Region Of Interest</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="ROI_combo">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>490</y>
+        <width>151</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="currentText">
+       <string>Select ROI</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select ROI</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Upload Shapefile</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Input max/min long/lat</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLineEdit" name="input_bit_length">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>399</y>
+        <width>113</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>230</y>
+        <width>151</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Projection Type</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="input_start_bit">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>365</y>
+        <width>113</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>340</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Select Variable(s)</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBox">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>270</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select Type</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>PlateCarree: Simple latitude/longitude</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Sinusoidal</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Polar Stereographic</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Geostationary</string>
+       </property>
+      </item>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="panel_2">
+     <attribute name="title">
+      <string>Statistics</string>
+     </attribute>
+     <widget class="QLabel" name="GridTitle">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>40</y>
+        <width>661</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>22</pointsize>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Select Grid Resolution &amp; Statistical Metrics</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="resampling_label">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>175</y>
+        <width>221</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Grid Resampling Options</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="metric_label">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>300</y>
+        <width>220</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Statistical Metric Selection</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="options_label">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>420</y>
+        <width>171</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Comparison Options</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="resampling_dropdown">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>210</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select Options</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Nearest Neighbor</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Bilinear Interpolation</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QComboBox" name="metric_dropdown">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>330</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select Metric</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>RMSE</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Correlation</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Standard Deviation</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QComboBox" name="options_dropdown">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>450</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select Comparison</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Side-by-Side</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Difference</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QGraphicsView" name="graph_1">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>170</y>
+        <width>411</width>
+        <height>411</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QGraphicsView" name="graph_2">
+      <property name="geometry">
+       <rect>
+        <x>760</x>
+        <y>170</y>
+        <width>411</width>
+        <height>411</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QGraphicsView" name="difference_graph">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>170</y>
+        <width>411</width>
+        <height>411</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="generate_button">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>530</y>
+        <width>80</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Generate</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="panel_3">
+     <attribute name="title">
+      <string>Visuals</string>
+     </attribute>
+     <widget class="QLabel" name="VisualTitle">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>50</y>
+        <width>661</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>22</pointsize>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Customize Visualization</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="visualType_label">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>190</y>
+        <width>221</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Select Visualization Type</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="visualSettings_label">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>270</y>
+        <width>231</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Adjust Visualization Settings</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="scheme_label">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>320</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Color Schemes</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="legend_label">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>390</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Legend Settings</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="plotLabel_label">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>450</y>
+        <width>181</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Plot Labels</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="scheme_dropdown">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>350</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>White</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Black</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Red</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Blue</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QCheckBox" name="legend_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>420</y>
+        <width>85</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>On</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="x_axis_label">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>480</y>
+        <width>181</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>X-axis:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="y_axis_label">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>510</y>
+        <width>181</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Y-axis:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="x_axis_input">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>480</y>
+        <width>81</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="y_axis_input">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>510</y>
+        <width>81</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="visualType_dropdown">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>220</y>
+        <width>151</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Select Type</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Scatter Plot</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Line Graph</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Difference Map</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Histogram</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QGraphicsView" name="graphicsView_4">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>210</y>
+        <width>751</width>
+        <height>411</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1366</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_Run"/>
+    <addaction name="action_Clear"/>
+    <addaction name="separator"/>
+    <addaction name="action_Save_As"/>
+    <addaction name="action_Save"/>
+    <addaction name="separator"/>
+    <addaction name="action_Output"/>
+    <addaction name="action_Export"/>
+    <addaction name="separator"/>
+    <addaction name="action_Quit"/>
+   </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Setting">
+    <property name="title">
+     <string>&amp;Setting</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionLST_FAQ"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
+   <addaction name="menu_Setting"/>
+   <addaction name="menu_Help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_Open">
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+  </action>
+  <action name="action_Save">
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+  </action>
+  <action name="action_Save_As">
+   <property name="text">
+    <string>Save &amp;As</string>
+   </property>
+  </action>
+  <action name="action_Output">
+   <property name="text">
+    <string>&amp;Print</string>
+   </property>
+  </action>
+  <action name="actionLST_FAQ">
+   <property name="text">
+    <string>LST FAQ</string>
+   </property>
+  </action>
+  <action name="action_Run">
+   <property name="text">
+    <string>&amp;Run</string>
+   </property>
+  </action>
+  <action name="action_Export">
+   <property name="text">
+    <string>&amp;Export</string>
+   </property>
+  </action>
+  <action name="action_Clear">
+   <property name="text">
+    <string>&amp;Clear</string>
+   </property>
+  </action>
+  <action name="action_Quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
