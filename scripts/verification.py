@@ -17,6 +17,7 @@ class Comparison:
         result[np.isnan(qc_data)] = np.nan
         return result
     
+    #changed
     def compare_qc_flags(self, ref_qc, new_qc, output_dir):
         """详细比较BRF QC标志的每个位"""
         # BRF DQF标志位定义
@@ -45,105 +46,124 @@ class Comparison:
                     7: 'invalid'
                 }
             },
-            # 'retrieval_path': {
-            #     'start': 3,
-            #     'bits': 2,
-            #     'values': {
-            #         0: 'R1',
-            #         1: 'R2',
-            #         2: 'R3 (at least one band has no retrieval)',
-            #         3: 'R3 (at least one band has no retrieval)'
-            #     },
-            #     'note': 'R3 is the main subroutine for clear-sky, R1 is the backup subroutine'
-            # },
-            # 'small_scattering_angle': {
-            #     'start': 5,
-            #     'bits': 1,
-            #     'values': {
-            #         0: 'Scattering angle > 5 degrees',
-            #         1: 'Scattering angle < 5 degrees'
-            #     },
-            #     'note': 'Scattering angle to catch approximate hotspot scope'
-            # },
-            # 'cloud': {
-            #     'start': 6,
-            #     'bits': 1,
-            #     'values': {
-            #         0: 'Absolutely clear',
-            #         1: 'Probably clear, probably cloudy, absolutely cloudy'
-            #     }
-            # },
-            # 'aod_availability': {
-            #     'start': 7,
-            #     'bits': 1,
-            #     'values': {
-            #         0: 'Valid AOD',
-            #         1: 'Invalid climatology'
-            #     }
-            # }
+            'retrieval_path': {
+                'start': 3,
+                'bits': 2,
+                'values': {
+                    0: 'R1',
+                    1: 'R2',
+                    2: 'R3 (at least one band has no retrieval)',
+                    3: 'R3 (at least one band has no retrieval)'
+                },
+                'note': 'R3 is the main subroutine for clear-sky, R1 is the backup subroutine'
+            },
+            'small_scattering_angle': {
+                'start': 5,
+                'bits': 1,
+                'values': {
+                    0: 'Scattering angle > 5 degrees',
+                    1: 'Scattering angle < 5 degrees'
+                },
+                'note': 'Scattering angle to catch approximate hotspot scope'
+            },
+            'cloud': {
+                'start': 6,
+                'bits': 1,
+                'values': {
+                    0: 'Absolutely clear',
+                    1: 'Probably clear, probably cloudy, absolutely cloudy'
+                }
+            },
+            'aod_availability': {
+                'start': 7,
+                'bits': 1,
+                'values': {
+                    0: 'Valid AOD',
+                    1: 'Invalid climatology'
+                }
+            }
         }
 
         
         # 为每个标志位绘制比较图
-        for flag_name, flag_info in brf_dqf_bits.items():
-            self.plot_qc_comparison(ref_qc, new_qc, flag_name, flag_info, output_dir)
+        # for flag_name, flag_info in brf_dqf_bits.items():
+            # self.plot_qc_comparison(ref_qc, new_qc, flag_name, flag_info, output_dir)
         
         results = {}
         total_valid_pixels = np.sum(~np.isnan(ref_qc))
         
-        # 分析每个标志位
-        for flag_name, flag_info in brf_dqf_bits.items():
-            ref_bits = self.extract_bits(ref_qc, flag_info['start'], flag_info['bits'])
-            new_bits = self.extract_bits(new_qc, flag_info['start'], flag_info['bits'])
-            
-            valid_pixels = ~np.isnan(ref_bits)
-            
-            # 如果是aod_availability标记，进行采样分析
-            if flag_name == 'aod_availability':
-                total_diff = self.analyze_aod_availability_changes(ref_bits, new_bits, valid_pixels)
-            
-            # 计算每个可能值的统计
-            value_stats = {}
-            valid_pixels = ~np.isnan(ref_bits)
-            
-            # 计算总体匹配统计
-            matching_pixels = np.sum((ref_bits == new_bits) & valid_pixels)
-            different_pixels = np.sum((ref_bits != new_bits) & valid_pixels)
-            
-            print(f"\n{flag_name.replace('_', ' ').title()}:")
-            print(f"  Matching pixels: {matching_pixels}")
-            print(f"  Different pixels: {different_pixels}")
-            print(f"  Matching percentage: {(matching_pixels / total_valid_pixels * 100):.2f}%")
-            
-            # 详细的值分布统计
-            print("  Value distribution:")
-            for value in flag_info['values'].keys():
-                ref_count = np.sum((ref_bits == value) & valid_pixels)
-                new_count = np.sum((new_bits == value) & valid_pixels)
-                matching = np.sum((ref_bits == value) & (new_bits == value) & valid_pixels)
-                
-                value_stats[value] = {
-                    'description': flag_info['values'][value],
-                    'ref_count': int(ref_count),
-                    'new_count': int(new_count),
-                    'matching': int(matching),
-                    'ref_percentage': (ref_count / total_valid_pixels * 100),
-                    'new_percentage': (new_count / total_valid_pixels * 100)
-                }
-                
-                print(f"    Value {value} ({flag_info['values'][value]}):")
-                print(f"      Reference: {ref_count} ({value_stats[value]['ref_percentage']:.2f}%)")
-                print(f"      New: {new_count} ({value_stats[value]['new_percentage']:.2f}%)")
-                print(f"      Matching: {matching}")
+        # should make this more efficient 
+
+        bit_start = int(self.ui.input_start_bit.text())
+        print(bit_start)
+        # bit_length = self.ui.input_bit_length.text()
+        flag_name = ''
+
+        if bit_start == 0:
+            flag_name = 'quality_score'
+        elif bit_start == 3:
+            flag_name ='retrieval_path'
+        elif bit_start == 5:
+            flag_name = 'small_scattering_angle'
+        elif bit_start == 6:
+            flag_name = 'cloud'
+        elif bit_start == 7:
+            flag_name = 'aod_availability'
+
+        print(flag_name)
+        flag_info = brf_dqf_bits[flag_name]
+
+        ref_bits = self.extract_bits(ref_qc, flag_info['start'], flag_info['bits'])
+        new_bits = self.extract_bits(new_qc, flag_info['start'], flag_info['bits'])
         
-            results[flag_name] = {
-                'matching_percentage': (matching_pixels / total_valid_pixels * 100),
-                'total_pixels': total_valid_pixels,
-                'matching_pixels': matching_pixels,
-                'different_pixels': different_pixels,
-                'value_stats': value_stats
+        valid_pixels = ~np.isnan(ref_bits)
+        
+        # 如果是aod_availability标记，进行采样分析
+        # if flag_name == 'aod_availability':
+            # total_diff = self.analyze_aod_availability_changes(ref_bits, new_bits, valid_pixels)
+        
+        # 计算每个可能值的统计
+        value_stats = {}
+        valid_pixels = ~np.isnan(ref_bits)
+        
+        # 计算总体匹配统计
+        matching_pixels = np.sum((ref_bits == new_bits) & valid_pixels)
+        different_pixels = np.sum((ref_bits != new_bits) & valid_pixels)
+        
+        print(f"\n{flag_name.replace('_', ' ').title()}:")
+        print(f"  Matching pixels: {matching_pixels}")
+        print(f"  Different pixels: {different_pixels}")
+        print(f"  Matching percentage: {(matching_pixels / total_valid_pixels * 100):.2f}%")
+        
+        # 详细的值分布统计
+        print("  Value distribution:")
+        for value in flag_info['values'].keys():
+            ref_count = np.sum((ref_bits == value) & valid_pixels)
+            new_count = np.sum((new_bits == value) & valid_pixels)
+            matching = np.sum((ref_bits == value) & (new_bits == value) & valid_pixels)
+            
+            value_stats[value] = {
+                'description': flag_info['values'][value],
+                'ref_count': int(ref_count),
+                'new_count': int(new_count),
+                'matching': int(matching),
+                'ref_percentage': (ref_count / total_valid_pixels * 100),
+                'new_percentage': (new_count / total_valid_pixels * 100)
             }
-        
+            
+            print(f"    Value {value} ({flag_info['values'][value]}):")
+            print(f"      Reference: {ref_count} ({value_stats[value]['ref_percentage']:.2f}%)")
+            print(f"      New: {new_count} ({value_stats[value]['new_percentage']:.2f}%)")
+            print(f"      Matching: {matching}")
+    
+        results[flag_name] = {
+            'matching_percentage': (matching_pixels / total_valid_pixels * 100),
+            'total_pixels': total_valid_pixels,
+            'matching_pixels': matching_pixels,
+            'different_pixels': different_pixels,
+            'value_stats': value_stats
+        }
+    
         return results
 
     def plot_qc_comparison(self, ref_qc, new_qc, flag_name, flag_info, output_dir):
@@ -185,20 +205,20 @@ class Comparison:
             ax.gridlines(color='gray', alpha=0.5)
             ax.coastlines(resolution='50m', color='black', linestyle='--')
             
-            # 添加colorbar
-            cbar = plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+            # # 添加colorbar
+            # cbar = plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
             
-            # 为前两个图（参考和新数据）添加值的说明
-            if idx < 2:
-                cbar.set_ticks(range(max_value + 1))
-                cbar.set_ticklabels([f"{i}\n({flag_info['values'][i]})" for i in range(max_value + 1)])
+            # # 为前两个图（参考和新数据）添加值的说明
+            # if idx < 2:
+            #     cbar.set_ticks(range(max_value + 1))
+            #     cbar.set_ticklabels([f"{i}\n({flag_info['values'][i]})" for i in range(max_value + 1)])
             
             ax.set_title(f'{titles[idx]} - {flag_name.replace("_", " ").title()}', fontsize=14, pad=20)
-        
-        plt.tight_layout()
-        output_name = os.path.join(output_dir, f'BRF_QC_Comparison_{flag_name}.png')
-        fig.savefig(output_name, bbox_inches='tight')
-        plt.close()
+            
+            plt.tight_layout()
+            output_name = os.path.join(output_dir, f'BRF_QC_Comparison_{flag_name}.png')
+            fig.savefig(output_name, bbox_inches='tight')
+            plt.close()
 
     def analyze_aod_availability_changes(self, ref_bits, new_bits, valid_mask):
         """分析AOD可用性标记的变化情况，并采样不同的像素"""
@@ -237,7 +257,7 @@ class Comparison:
         
         return total_diff
 
-    def compare_brf_files(self, file1, file2, output_dir):
+    def compare_brf_files(self, file1, file2, output_dir, projection):
         """比较两个BRF文件"""
         # 读取文件
         nc1 = Dataset(file1, 'r')  # Reference file
@@ -292,7 +312,8 @@ class Comparison:
                 new_data,
                 diff,
                 f'Band {band}',
-                output_dir
+                output_dir,
+                projection_type="Geostationary"
             )
             
             results[f'Band{band}'] = stats
@@ -317,19 +338,40 @@ class Comparison:
         nc2.close()
         return all_results
 
-    def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir):
+    #changed
+    def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
+
         """在1x3子图中绘制比较结果"""
-        fig = plt.figure(figsize=(24, 8))
-        
         # 设置投影参数
-        semi_major = 6378137.0
-        semi_minor = 6356752.31414
-        longitude_of_projection_origin = -75.0
-        perspective_point_height = 3.5786023E7
-        globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
-        projection = ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
-                                    satellite_height=perspective_point_height, globe=globe)
+        def get_projection(projection_type):
+            """Returns a Cartopy projection based on the selected type."""
+            semi_major = 6378137.0
+            semi_minor = 6356752.31414
+            longitude_of_projection_origin = -75.0
+            perspective_point_height = 3.5786023E7
+
+            if projection_type == "Geostationary":
+                globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
+                return ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
+                                        satellite_height=perspective_point_height, globe=globe)
+
+            elif projection_type == "PlateCarree":
+                return ccrs.PlateCarree()
+
+            elif projection_type == "Sinusoidal":
+                return ccrs.Sinusoidal(central_longitude=0)
+
+            elif projection_type == "NorthPolarStereo":
+                return ccrs.NorthPolarStereo(central_longitude=0, true_scale_latitude=70)
+
+            elif projection_type == "SouthPolarStereo":
+                return ccrs.SouthPolarStereo(central_longitude=0, true_scale_latitude=-71)
+
+            else:
+                raise ValueError(f"Unsupported projection type: {projection_type}")
         
+        projection = get_projection(projection_type)
+    
         titles = ['Reference', 'New', 'Difference']
         data_list = [ref_data, new_data, diff_data]
         cmaps = ['viridis', 'viridis', 'seismic']
@@ -342,21 +384,30 @@ class Comparison:
         ranges = [(valid_min, valid_max), (valid_min, valid_max), (-diff_range, diff_range)]
         
         for idx in range(3):
+
+            name = ["ref", "new", "diff"][idx]
+
+            fig = plt.figure(figsize=(18, 6))
             ax = fig.add_subplot(1, 3, idx+1, projection=projection)
             
-            img = ax.imshow(data_list[idx], origin='upper', transform=projection,
-                        extent=(-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823),
-                        cmap=cmaps[idx], vmin=ranges[idx][0], vmax=ranges[idx][1])
+            if projection_type == "PlateCarree":
+                extent = (-180, 180, -90, 90)
+            elif projection_type == "Geostationary":
+                extent = (-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823)
+
+            # extent=(-180, 180, -90, 90)
+            img = ax.imshow(data_list[idx], origin='upper', transform=projection, 
+                            extent=extent, cmap=cmaps[idx], 
+                            vmin=ranges[idx][0], vmax=ranges[idx][1])
             
             ax.gridlines(color='gray', alpha=0.5)
             ax.coastlines(resolution='50m', color='black', linestyle='--')
             
-            plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
-            ax.set_title(f'{titles[idx]} - {title}', fontsize=14, pad=20)
-        
-        plt.tight_layout()
-        output_name = os.path.join(output_dir, f'BRF_Comparison_{title.replace(" ", "_")}.png')
-        fig.savefig(output_name, bbox_inches='tight')
+            # plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+            ax.set_title(f'{projection_type} | {titles[idx]} - {title}', fontsize=10, pad=20)
+            # plt.tight_layout()
+            output_name = os.path.join(output_dir, f'BRF_Comparison_{title.replace(" ", "_")}_{name}.png')
+            fig.savefig(output_name, bbox_inches='tight')
         plt.close()
 
     def save_results_to_file(results, output_dir):

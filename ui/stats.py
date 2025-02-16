@@ -42,6 +42,9 @@ class StatPanel:
             print("Selected Standard Deviation")
     
     def handle_selection_3(self):
+        self.ui.graph_1.setVisible(False)
+        self.ui.graph_2.setVisible(False)
+        self.ui.difference_graph.setVisible(False)
         choice = self.ui.options_dropdown.currentIndex()
         # print(choice)
 
@@ -51,20 +54,22 @@ class StatPanel:
         elif choice == 1:
             self.ui.graph_1.setVisible(True)
             self.ui.graph_2.setVisible(True)
-            # self.display_image(self.ui.graph_1, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1.png")
-            # self.display_image(self.ui.graph_2, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_2.png")
+            self.display_image(self.ui.graph_1, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_ref.png")
+            self.display_image(self.ui.graph_2, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_new.png")
             print("Selected Side-by-Side")
 
         elif choice == 2:
+            self.ui.difference_graph.setVisible(True)
+            self.display_image(self.ui.difference_graph, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_diff.png")
             print("Selected Difference")
 
     def display_image(self, view, image_path):
         """Loads and displays an image in the specified QGraphicsView."""
-        scene = QGraphicsScene()  # Create a new scene
-        pixmap = QPixmap(image_path)  # Load the image
-        pixmap_item = QGraphicsPixmapItem(pixmap)  # Convert to pixmap item
-        scene.addItem(pixmap_item)  # Add to scene
-        view.setScene(scene)  # Set scene to the view
+        scene = QGraphicsScene()
+        pixmap = QPixmap(image_path)
+        pixmap_item = QGraphicsPixmapItem(pixmap)
+        scene.addItem(pixmap_item)
+        view.setScene(scene)
         
 
 

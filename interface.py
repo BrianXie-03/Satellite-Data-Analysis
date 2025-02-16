@@ -60,6 +60,12 @@ class MyApp(QMainWindow, Ui_MainWindow):
 
         ########### Panel 2 ###########
 
+        # ensure that all graphical boxes are hidden
+        self.graph_1.setVisible(False)
+        self.graph_2.setVisible(False)
+        self.difference_graph.setVisible(False)
+
+        # interaction if generate is clicked
         self.generate_button.clicked.connect(self.stat_panel.dropdowns)
 
         ########### Panel 3 ###########
@@ -87,16 +93,7 @@ class MyApp(QMainWindow, Ui_MainWindow):
         """Retrieves file paths and calls comparison function"""
         file1 = self.fileLabel.text()
         file2 = self.fileLabel_2.text()
-
-        # if not file1 or not file2:
-            # todo # 
-            # Create a warning text box that can display the images.
-
-            # QMessageBox.warning(self, "Missing Files", "Please upload both files before comparing.")
-            # return
-
-        # Call the comparison function (function body omitted)
-        results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis")
+        results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis", projection="PlateCarree")
 
         print("Comparison results:", results)
 
