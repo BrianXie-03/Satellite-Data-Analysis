@@ -46,21 +46,21 @@ class StatPanel:
         self.ui.graph_2.setVisible(False)
         self.ui.difference_graph.setVisible(False)
         choice = self.ui.options_dropdown.currentIndex()
-        # print(choice)
-
+        
         if choice == 0:
             pass
 
         elif choice == 1:
             self.ui.graph_1.setVisible(True)
             self.ui.graph_2.setVisible(True)
-            self.display_image(self.ui.graph_1, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_ref.png")
-            self.display_image(self.ui.graph_2, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_new.png")
+            self.display_image(self.ui.graph_1, "/home/brian/research/results/brf_analysis/BRF_Comparison_ref.png")
+            self.display_image(self.ui.graph_2, "/home/brian/research/results/brf_analysis/BRF_Comparison_new.png")
+            
             print("Selected Side-by-Side")
 
         elif choice == 2:
             self.ui.difference_graph.setVisible(True)
-            self.display_image(self.ui.difference_graph, "/home/brian/research/results/brf_analysis/BRF_Comparison_Band_1_diff.png")
+            self.display_image(self.ui.difference_graph, "/home/brian/research/results/brf_analysis/BRF_Comparison_diff.png")
             print("Selected Difference")
 
     def display_image(self, view, image_path):

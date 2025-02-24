@@ -39,13 +39,20 @@ class MyApp(QMainWindow, Ui_MainWindow):
 
         #upload button for comparison files
         self.uploadButton.clicked.connect(partial(self.upload_file_and_store, self.fileLabel, "file_path_1", self.remove))
-        self.uploadButton_2.clicked.connect(partial(self.upload_file_and_store, self.fileLabel_2, "file_path_1", self.remove_2))
+        self.uploadButton_2.clicked.connect(partial(self.upload_file_and_store, self.fileLabel_2, "file_path_2", self.remove_2))
 
         # Setting up the Remove Button for comparison files (hidden if there is no file inputted)
         self.remove.clicked.connect(partial(self.data_panel.clear_file, self.fileLabel, "file_path_1", self.remove))
         self.remove.setEnabled(False)
         self.remove_2.clicked.connect(partial(self.data_panel.clear_file, self.fileLabel_2, "file_path_2", self.remove_2))
         self.remove_2.setEnabled(False)
+
+        for i in range(self.bit_grid.count()):
+            widget = self.bit_grid.itemAt(i).widget()
+            if widget:
+                widget.setVisible(False) 
+
+        self.qc_check.stateChanged.connect(self.data_panel.toggle_qc)
 
         #ROI Dropdown
         for i in range(self.horizontalLayout_sf.count()):
@@ -88,12 +95,11 @@ class MyApp(QMainWindow, Ui_MainWindow):
         setattr(self, path_attr, source_name)
         print(f"Stored file path: {getattr(self, path_attr)}")
 
-
     def compare_files(self):
         """Retrieves file paths and calls comparison function"""
         file1 = self.fileLabel.text()
         file2 = self.fileLabel_2.text()
-        results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis", projection="PlateCarree")
+        results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis", projection=self.comboBox.currentText())
 
         print("Comparison results:", results)
 

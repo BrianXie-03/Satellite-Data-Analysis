@@ -224,88 +224,62 @@
       </property>
       <layout class="QGridLayout" name="GeoGrid">
        <item row="0" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout_13">
+        <layout class="QVBoxLayout" name="Min_Long">
          <item>
-          <widget class="QLabel" name="Min_Long_Label_4">
+          <widget class="QLabel" name="Min_Long_Label">
            <property name="text">
             <string>Minimun Longtitude</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="Min_Long_Value_4"/>
+          <widget class="QLineEdit" name="Min_Long_Value"/>
          </item>
         </layout>
        </item>
        <item row="0" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_14">
+        <layout class="QVBoxLayout" name="Min_Lat">
          <item>
-          <widget class="QLabel" name="Min_Lat_Label_4">
+          <widget class="QLabel" name="Min_Lat_Label">
            <property name="text">
             <string>Minimun Latittude</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="Min_Lat_Value_4"/>
+          <widget class="QLineEdit" name="Min_Lat_Value"/>
          </item>
         </layout>
        </item>
        <item row="1" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout_15">
+        <layout class="QVBoxLayout" name="Max_Long">
          <item>
-          <widget class="QLabel" name="Max_Long_Label_4">
+          <widget class="QLabel" name="Max_Long_Label">
            <property name="text">
             <string>Maximum Longtitude</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="Max_Long_Value_4"/>
+          <widget class="QLineEdit" name="Max_Long_Value"/>
          </item>
         </layout>
        </item>
        <item row="1" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_16">
+        <layout class="QVBoxLayout" name="Max_Lat">
          <item>
-          <widget class="QLabel" name="label_8">
+          <widget class="QLabel" name="Max_Lat_Label">
            <property name="text">
             <string>Maximum Latitude</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_7"/>
+          <widget class="QLineEdit" name="Max_lat_Value"/>
          </item>
         </layout>
        </item>
       </layout>
-     </widget>
-     <widget class="QLabel" name="length_bit_text">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>400</y>
-        <width>71</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Bit Length:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="start_bit_text">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>370</y>
-        <width>57</width>
-        <height>15</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Start Bit:</string>
-      </property>
      </widget>
      <widget class="QPushButton" name="compare_button">
       <property name="geometry">
@@ -369,16 +343,6 @@
        </property>
       </item>
      </widget>
-     <widget class="QLineEdit" name="input_bit_length">
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>399</y>
-        <width>113</width>
-        <height>23</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
@@ -398,16 +362,6 @@
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="input_start_bit">
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>365</y>
-        <width>113</width>
-        <height>23</height>
-       </rect>
       </property>
      </widget>
      <widget class="QLabel" name="label_2">
@@ -465,6 +419,71 @@
         <string>Geostationary</string>
        </property>
       </item>
+     </widget>
+     <widget class="QComboBox" name="fileDropdown1">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>370</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="fileDropdown2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>410</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="qc_check">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>370</y>
+        <width>91</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>QC Variable</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>370</y>
+        <width>199</width>
+        <height>54</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="bit_grid">
+       <item row="0" column="0">
+        <widget class="QLabel" name="start_bit_text">
+         <property name="text">
+          <string>Start Bit:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="input_start_bit"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="length_bit_text">
+         <property name="text">
+          <string>Bit Length:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="input_bit_length"/>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="panel_2">

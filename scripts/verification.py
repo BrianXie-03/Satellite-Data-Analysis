@@ -91,12 +91,9 @@ class Comparison:
         
         results = {}
         total_valid_pixels = np.sum(~np.isnan(ref_qc))
-        
-        # should make this more efficient 
 
         bit_start = int(self.ui.input_start_bit.text())
-        print(bit_start)
-        # bit_length = self.ui.input_bit_length.text()
+        bit_length = int(self.ui.input_bit_length.text())
         flag_name = ''
 
         if bit_start == 0:
@@ -113,8 +110,8 @@ class Comparison:
         print(flag_name)
         flag_info = brf_dqf_bits[flag_name]
 
-        ref_bits = self.extract_bits(ref_qc, flag_info['start'], flag_info['bits'])
-        new_bits = self.extract_bits(new_qc, flag_info['start'], flag_info['bits'])
+        ref_bits = self.extract_bits(ref_qc, bit_start, bit_length)
+        new_bits = self.extract_bits(new_qc, bit_start, bit_length)
         
         valid_pixels = ~np.isnan(ref_bits)
         
@@ -138,6 +135,9 @@ class Comparison:
         # 详细的值分布统计
         print("  Value distribution:")
         for value in flag_info['values'].keys():
+            # if value < bit_start or value >= (bit_start + bit_length):
+            #     continue
+
             ref_count = np.sum((ref_bits == value) & valid_pixels)
             new_count = np.sum((new_bits == value) & valid_pixels)
             matching = np.sum((ref_bits == value) & (new_bits == value) & valid_pixels)
@@ -169,8 +169,10 @@ class Comparison:
     def plot_qc_comparison(self, ref_qc, new_qc, flag_name, flag_info, output_dir):
         """为单个QC标志位绘制比较图"""
         # 提取当前标志位的数据
-        ref_bits = self.extract_bits(ref_qc, flag_info['start'], flag_info['bits'])
-        new_bits = self.extract_bits(new_qc, flag_info['start'], flag_info['bits'])
+        bit_start = int(self.ui.input_start_bit.text())
+        bit_length = int(self.ui.input_bit_length.text())
+        ref_bits = self.extract_bits(ref_qc, bit_start, bit_length)
+        new_bits = self.extract_bits(new_qc, bit_start, bit_length)
         
         # 计算差异，保持nan值
         diff = ref_bits - new_bits
@@ -258,65 +260,51 @@ class Comparison:
         return total_diff
 
     def compare_brf_files(self, file1, file2, output_dir, projection):
+
         """比较两个BRF文件"""
         # 读取文件
         nc1 = Dataset(file1, 'r')  # Reference file
         nc2 = Dataset(file2, 'r')  # New file
+
+        file1_var = str(self.ui.fileDropdown1.currentText())
+        file2_var = str(self.ui.fileDropdown2.currentText())
+        ref_data = nc1[file1_var][:]
+        new_data = nc2[file2_var][:]
         
-        # 比较反射率    
-        results = {}
+        # 创建掩码处理缺失值
+        ref_mask = ((ref_data != nc1[file1_var]._FillValue) & 
+                    (ref_data >= 0) & 
+                    (ref_data <= 1))
+        new_mask = ((new_data != nc2[file2_var]._FillValue) & 
+                    (new_data >= 0) & 
+                    (new_data <= 1))
+        valid_mask = ref_mask & new_mask
         
-        # 通道映射
-        channels = {
-            1: 'Ch1_Ref',
-            2: 'Ch2_Ref',
-            3: 'Ch3_Ref',
-            5: 'Ch5_Ref',
-            6: 'Ch6_Ref'
+        # 计算有效数据的统计信息
+        ref_valid = ref_data[valid_mask]
+        new_valid = new_data[valid_mask]
+        diff = np.where(valid_mask, ref_data - new_data, np.nan)
+        
+        # 计算统计数据
+        results = {
+            'ref_mean': np.mean(ref_valid),
+            'new_mean': np.mean(new_valid),
+            'mean_diff': np.nanmean(diff),
+            'std_diff': np.nanstd(diff),
+            'max_diff': np.nanmax(np.abs(diff)),
+            'valid_pixels': np.sum(valid_mask),
+            'relative_diff_percent': (np.nanmean(np.abs(diff)) / np.nanmean(np.abs(ref_valid))) * 100
         }
         
-        # 比较每个通道的反射率
-        for band, ref_var in channels.items():
-            # 读取反射率数据
-            ref_data = nc1[ref_var][:]
-            new_data = nc2[f'BRF{band}'][:]
-            
-            # 创建掩码处理缺失值
-            ref_mask = ((ref_data != nc1[ref_var]._FillValue) & 
-                        (ref_data >= 0) & 
-                        (ref_data <= 1))
-            new_mask = ((new_data != nc2[f'BRF{band}']._FillValue) & 
-                        (new_data >= 0) & 
-                        (new_data <= 1))
-            valid_mask = ref_mask & new_mask
-            
-            # 计算有效数据的统计信息
-            ref_valid = ref_data[valid_mask]
-            new_valid = new_data[valid_mask]
-            diff = np.where(valid_mask, ref_data - new_data, np.nan)
-            
-            # 计算统计数据
-            stats = {
-                'ref_mean': np.mean(ref_valid),
-                'new_mean': np.mean(new_valid),
-                'mean_diff': np.nanmean(diff),
-                'std_diff': np.nanstd(diff),
-                'max_diff': np.nanmax(np.abs(diff)),
-                'valid_pixels': np.sum(valid_mask),
-                'relative_diff_percent': (np.nanmean(np.abs(diff)) / np.nanmean(np.abs(ref_valid))) * 100
-            }
-            
-            # 绘制比较图
-            self.plot_comparison(
-                ref_data,
-                new_data,
-                diff,
-                f'Band {band}',
-                output_dir,
-                projection_type="Geostationary"
-            )
-            
-            results[f'Band{band}'] = stats
+        # 绘制比较图
+        self.plot_comparison(
+            ref_data,
+            new_data,
+            diff,
+            str(file1_var[2:3]),
+            output_dir,
+            projection_type=projection
+        )
         
         # 比较QC标记 - 使用反射率的有效掩码
         ref_qc = nc1['Ref_QF'][:]
@@ -395,7 +383,12 @@ class Comparison:
             elif projection_type == "Geostationary":
                 extent = (-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823)
 
-            # extent=(-180, 180, -90, 90)
+            if self.ui.ROI_combo.currentText() == "Input max/min long/lat":
+                extent = (float(self.ui.Min_Long_Value.text()), 
+                          float(self.ui.Max_Long_Value.text()), 
+                          float(self.ui.Min_Lat_Value.text()), 
+                          float(self.ui.Max_lat_Value.text()))
+
             img = ax.imshow(data_list[idx], origin='upper', transform=projection, 
                             extent=extent, cmap=cmaps[idx], 
                             vmin=ranges[idx][0], vmax=ranges[idx][1])
@@ -404,9 +397,9 @@ class Comparison:
             ax.coastlines(resolution='50m', color='black', linestyle='--')
             
             # plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
-            ax.set_title(f'{projection_type} | {titles[idx]} - {title}', fontsize=10, pad=20)
+            ax.set_title(f'{projection_type} | {titles[idx]}', fontsize=10, pad=20)
             # plt.tight_layout()
-            output_name = os.path.join(output_dir, f'BRF_Comparison_{title.replace(" ", "_")}_{name}.png')
+            output_name = os.path.join(output_dir, f'BRF_Comparison_{name}.png')
             fig.savefig(output_name, bbox_inches='tight')
         plt.close()
 

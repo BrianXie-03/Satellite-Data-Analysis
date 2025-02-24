@@ -55,6 +55,18 @@ class DataPanel():
                     if nested_layout:
                         self.show_widgets_in_layout(nested_layout)
 
+    def toggle_qc(self):
+        if self.ui.qc_check.isChecked():
+            for i in range(self.ui.bit_grid.count()):
+                widget = self.ui.bit_grid.itemAt(i).widget()
+                if widget:
+                    widget.setVisible(True)
+        else:
+            for i in range(self.ui.bit_grid.count()):
+                widget = self.ui.bit_grid.itemAt(i).widget()
+                if widget:
+                    widget.setVisible(False)
+
     def handle_selection(self):
         choice = self.ui.ROI_combo.currentIndex()
         print(choice)
@@ -130,7 +142,21 @@ class DataPanel():
             label.setText(f"{source_name}")
             setattr(self, path_attr, file_name)
             print(f"File selected: {file_name}")
-            # self.process_file(file_name)
+            
+            if path_attr == "file_path_1":
+                self.populate_dropdown(self.ui.fileDropdown1, file_name)
+            elif path_attr == "file_path_2":
+                self.populate_dropdown(self.ui.fileDropdown2, file_name)
             remove_button.setEnabled(True)
             return file_name
         return None
+    
+    def populate_dropdown(self, dropdown, filename):
+        try:
+            nc = Dataset(filename, 'r')
+            variables = [var for var in nc.variables.keys() if len(nc.variables[var].dimensions) >= 2]
+            dropdown.clear()
+            dropdown.addItems(variables)
+            nc.close()
+        except Exception as e:
+            print(f"Error loading netCDF file: {e}")
