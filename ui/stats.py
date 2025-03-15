@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QMainWindow, QGraphicsPixmapItem
 from PyQt5.QtGui import QPixmap
+import scipy
 import sys
 
 class StatPanel:
@@ -13,17 +14,21 @@ class StatPanel:
 
 
     def handle_selection_1(self):
-        choice = self.ui.resampling_dropdown.currentIndex()
-        # print(choice)
+        # choice = self.ui.resampling_dropdown.currentIndex()
+        # zoom_factors = (new_shape[0] / data.shape[0], new_shape[1] / data.shape[1])
+        # # print(choice)
 
-        if choice == 0:
-            pass
+        # if choice == 0:
+        #     pass
 
-        elif choice == 1:
-            print("Selected Nearest Neighbor")
+        # elif choice == 1:
+        #     return scipy.ndimage.zoom(data, zoom_factors, order=0)
 
-        elif choice == 2:
-            print("Selcted Bilinear Interpolation")
+        # elif choice == 2:
+        #     return scipy.ndimage.zoom(data, zoom_factors, order=1)
+        # else:
+        #     raise ValueError("Method must be 'nearest' or 'bilinear'")
+        return 1
 
     def handle_selection_2(self):
         choice = self.ui.metric_dropdown.currentIndex()

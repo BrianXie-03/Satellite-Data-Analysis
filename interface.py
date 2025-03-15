@@ -87,6 +87,71 @@ class MyApp(QMainWindow, Ui_MainWindow):
         self.action_Clear.triggered.connect(self.data_panel.clear_files)
         self.action_Quit.triggered.connect(self.data_panel.close_application)
 
+
+        #bits 
+        brf_dqf_bits = {
+        'quality_score': {
+            'start': 0,
+            'bits': 3,
+            'values': {
+                0: 'Good',
+                1: 'Snow',
+                2: 'Heavy aerosol (AOD>0.5)',
+                3: 'Fixed aerosol (AOD=0.05)',
+                4: 'Cloudy (not absolutely clear)',
+                5: 'Large SZA',
+                6: 'Large VZA',
+                7: 'Bad L1b'
+            },
+            'note': {
+                0: 'high quality',
+                1: 'high quality',
+                2: 'medium quality',
+                3: 'medium quality',
+                4: 'low quality',
+                5: 'invalid',
+                6: 'invalid',
+                7: 'invalid'
+            }
+        },
+        'retrieval_path': {
+            'start': 3,
+            'bits': 2,
+            'values': {
+                0: 'R1',
+                1: 'R2',
+                2: 'R3 (at least one band has no retrieval)',
+                3: 'R3 (at least one band has no retrieval)'
+            },
+            'note': 'R3 is the main subroutine for clear-sky, R1 is the backup subroutine'
+        },
+        'small_scattering_angle': {
+            'start': 5,
+            'bits': 1,
+            'values': {
+                0: 'Scattering angle > 5 degrees',
+                1: 'Scattering angle < 5 degrees'
+            },
+            'note': 'Scattering angle to catch approximate hotspot scope'
+        },
+        'cloud': {
+            'start': 6,
+            'bits': 1,
+            'values': {
+                0: 'Absolutely clear',
+                1: 'Probably clear, probably cloudy, absolutely cloudy'
+            }
+        },
+        'aod_availability': {
+            'start': 7,
+            'bits': 1,
+            'values': {
+                0: 'Valid AOD',
+                1: 'Invalid climatology'
+            }
+        }
+    }
+
     def upload_file_and_store(self, label, path_attr, remove_button):
         # Call upload_file and capture the return value
         source_name = self.data_panel.upload_file(label, path_attr, remove_button)
@@ -100,8 +165,13 @@ class MyApp(QMainWindow, Ui_MainWindow):
         file1 = self.fileLabel.text()
         file2 = self.fileLabel_2.text()
         results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis", projection=self.comboBox.currentText())
+        refl, qc = results.items()
+        # _,qc = qc1
+        print(refl)
+        print('\n')
+        # qc -> quality score (some general information) -> value_stats (bit information)
+        print(qc)
 
-        print("Comparison results:", results)
 
 
 def main():

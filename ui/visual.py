@@ -7,6 +7,13 @@ class VisualsPanel:
     
     def visual_selection(self):
         choice = self.ui.visualType_dropdown.currentIndex()
+        results = self.cmp.compare_brf_files(self.ui.file1, self.ui.file2, output_dir="results/brf_analysis", projection=self.comboBox.currentText())
+        refl, qc = results.items()
+        
+        #take qc and then graph it
+        data = qc[0]
+        print(data)
+
 
         if choice == 0:
             pass

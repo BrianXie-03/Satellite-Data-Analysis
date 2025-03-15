@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import os
 import cartopy.crs as ccrs
 from netCDF4 import Dataset
+import cartopy.feature as cfeature
+from scipy.ndimage import map_coordinates
+
+
 
 class Comparison:
     def __init__(self, ui):
@@ -85,9 +89,8 @@ class Comparison:
         }
 
         
-        # 为每个标志位绘制比较图
         # for flag_name, flag_info in brf_dqf_bits.items():
-            # self.plot_qc_comparison(ref_qc, new_qc, flag_name, flag_info, output_dir)
+        #     self.plot_qc_comparison(ref_qc, new_qc, flag_name, flag_info, output_dir)
         
         results = {}
         total_valid_pixels = np.sum(~np.isnan(ref_qc))
@@ -107,8 +110,8 @@ class Comparison:
         elif bit_start == 7:
             flag_name = 'aod_availability'
 
-        print(flag_name)
         flag_info = brf_dqf_bits[flag_name]
+        self.plot_qc_comparison(ref_qc, new_qc, flag_name, flag_info, output_dir)
 
         ref_bits = self.extract_bits(ref_qc, bit_start, bit_length)
         new_bits = self.extract_bits(new_qc, bit_start, bit_length)
@@ -119,22 +122,20 @@ class Comparison:
         # if flag_name == 'aod_availability':
             # total_diff = self.analyze_aod_availability_changes(ref_bits, new_bits, valid_pixels)
         
-        # 计算每个可能值的统计
         value_stats = {}
         valid_pixels = ~np.isnan(ref_bits)
         
-        # 计算总体匹配统计
         matching_pixels = np.sum((ref_bits == new_bits) & valid_pixels)
         different_pixels = np.sum((ref_bits != new_bits) & valid_pixels)
+        print(ref_bits)
         
         print(f"\n{flag_name.replace('_', ' ').title()}:")
         print(f"  Matching pixels: {matching_pixels}")
         print(f"  Different pixels: {different_pixels}")
         print(f"  Matching percentage: {(matching_pixels / total_valid_pixels * 100):.2f}%")
         
-        # 详细的值分布统计
         print("  Value distribution:")
-        for value in flag_info['values'].keys():
+        for value in range(bit_length):
             # if value < bit_start or value >= (bit_start + bit_length):
             #     continue
 
@@ -167,20 +168,15 @@ class Comparison:
         return results
 
     def plot_qc_comparison(self, ref_qc, new_qc, flag_name, flag_info, output_dir):
-        """为单个QC标志位绘制比较图"""
-        # 提取当前标志位的数据
         bit_start = int(self.ui.input_start_bit.text())
         bit_length = int(self.ui.input_bit_length.text())
         ref_bits = self.extract_bits(ref_qc, bit_start, bit_length)
         new_bits = self.extract_bits(new_qc, bit_start, bit_length)
         
-        # 计算差异，保持nan值
         diff = ref_bits - new_bits
         
-        # 创建图像
         fig = plt.figure(figsize=(24, 8))
         
-        # 设置投影参数
         semi_major = 6378137.0
         semi_minor = 6356752.31414
         longitude_of_projection_origin = -75.0
@@ -260,9 +256,6 @@ class Comparison:
         return total_diff
 
     def compare_brf_files(self, file1, file2, output_dir, projection):
-
-        """比较两个BRF文件"""
-        # 读取文件
         nc1 = Dataset(file1, 'r')  # Reference file
         nc2 = Dataset(file2, 'r')  # New file
 
@@ -271,21 +264,14 @@ class Comparison:
         ref_data = nc1[file1_var][:]
         new_data = nc2[file2_var][:]
         
-        # 创建掩码处理缺失值
-        ref_mask = ((ref_data != nc1[file1_var]._FillValue) & 
-                    (ref_data >= 0) & 
-                    (ref_data <= 1))
-        new_mask = ((new_data != nc2[file2_var]._FillValue) & 
-                    (new_data >= 0) & 
-                    (new_data <= 1))
+        ref_mask = ((ref_data != nc1[file1_var]._FillValue) & (ref_data >= 0) & (ref_data <= 1))
+        new_mask = ((new_data != nc2[file2_var]._FillValue) & (new_data >= 0) & (new_data <= 1))
         valid_mask = ref_mask & new_mask
         
-        # 计算有效数据的统计信息
-        ref_valid = ref_data[valid_mask]
-        new_valid = new_data[valid_mask]
+        ref_valid = np.mean(ref_data[valid_mask])
+        new_valid = np.mean(new_data[valid_mask])
         diff = np.where(valid_mask, ref_data - new_data, np.nan)
         
-        # 计算统计数据
         results = {
             'ref_mean': np.mean(ref_valid),
             'new_mean': np.mean(new_valid),
@@ -296,25 +282,21 @@ class Comparison:
             'relative_diff_percent': (np.nanmean(np.abs(diff)) / np.nanmean(np.abs(ref_valid))) * 100
         }
         
-        # 绘制比较图
-        self.plot_comparison(
-            ref_data,
-            new_data,
-            diff,
-            str(file1_var[2:3]),
-            output_dir,
-            projection_type=projection
-        )
+        # self.plot_comparison(
+        #     ref_data,
+        #     new_data,
+        #     diff,
+        #     str(file1_var[2:3]),
+        #     output_dir,
+        #     projection_type=projection
+        # )
         
-        # 比较QC标记 - 使用反射率的有效掩码
         ref_qc = nc1['Ref_QF'][:]
         new_qc = nc2['DQF'][:]
         
-        # 将无效区域的QC设为nan
         ref_qc_masked = np.where(valid_mask, ref_qc, np.nan)
         new_qc_masked = np.where(valid_mask, new_qc, np.nan)
         
-        # 详细的QC比较
         qc_results = self.compare_qc_flags(ref_qc_masked, new_qc_masked, output_dir)
         
         all_results = {
@@ -329,79 +311,88 @@ class Comparison:
     #changed
     def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
 
-        """在1x3子图中绘制比较结果"""
-        # 设置投影参数
-        def get_projection(projection_type):
-            """Returns a Cartopy projection based on the selected type."""
-            semi_major = 6378137.0
-            semi_minor = 6356752.31414
-            longitude_of_projection_origin = -75.0
-            perspective_point_height = 3.5786023E7
+    #     def get_projection(projection_type):
+    #         semi_major = 6378137.0
+    #         semi_minor = 6356752.31414
+    #         longitude_of_projection_origin = -75.0
+    #         perspective_point_height = 3.5786023E7
 
-            if projection_type == "Geostationary":
-                globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
-                return ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
-                                        satellite_height=perspective_point_height, globe=globe)
+    #         if projection_type == "Geostationary":
+    #             globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
+    #             return ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
+    #                                     satellite_height=perspective_point_height, globe=globe)
 
-            elif projection_type == "PlateCarree":
-                return ccrs.PlateCarree()
+    #         elif projection_type == "PlateCarree: Simple latitude/longitude":
+    #             return ccrs.PlateCarree()
 
-            elif projection_type == "Sinusoidal":
-                return ccrs.Sinusoidal(central_longitude=0)
+    #         # elif projection_type == "Sinusoidal":
+    #         #     return ccrs.Sinusoidal(central_longitude=0)
 
-            elif projection_type == "NorthPolarStereo":
-                return ccrs.NorthPolarStereo(central_longitude=0, true_scale_latitude=70)
+    #         # elif projection_type == "NorthPolarStereo":
+    #         #     return ccrs.NorthPolarStereo(central_longitude=0, true_scale_latitude=70)
 
-            elif projection_type == "SouthPolarStereo":
-                return ccrs.SouthPolarStereo(central_longitude=0, true_scale_latitude=-71)
+    #         # elif projection_type == "SouthPolarStereo":
+    #         #     return ccrs.SouthPolarStereo(central_longitude=0, true_scale_latitude=-71)
 
-            else:
-                raise ValueError(f"Unsupported projection type: {projection_type}")
+    #         else:
+    #             raise ValueError(f"Unsupported projection type: {projection_type}")
         
-        projection = get_projection(projection_type)
+    #     projection = get_projection(projection_type)
     
-        titles = ['Reference', 'New', 'Difference']
-        data_list = [ref_data, new_data, diff_data]
-        cmaps = ['viridis', 'viridis', 'seismic']
+    #     titles = ['Reference', 'New', 'Difference']
+    #     data_list = [ref_data, new_data, diff_data]
+    #     cmaps = ['viridis', 'viridis', 'seismic']
         
-        # 计算数据范围
-        valid_min = min(np.nanmin(ref_data), np.nanmin(new_data))
-        valid_max = max(np.nanmax(ref_data), np.nanmax(new_data))
-        diff_range = max(abs(np.nanmin(diff_data)), abs(np.nanmax(diff_data)))
+    #     # 计算数据范围
+    #     valid_min = min(np.nanmin(ref_data), np.nanmin(new_data))
+    #     valid_max = max(np.nanmax(ref_data), np.nanmax(new_data))
+    #     diff_range = max(abs(np.nanmin(diff_data)), abs(np.nanmax(diff_data)))
         
-        ranges = [(valid_min, valid_max), (valid_min, valid_max), (-diff_range, diff_range)]
+    #     ranges = [(valid_min, valid_max), (valid_min, valid_max), (-diff_range, diff_range)]
+
+    #     fig, axes = plt.subplots(1, 3, figsize=(18, 6), subplot_kw={'projection': projection})
         
-        for idx in range(3):
+    #        # Set extent based on projection type
+    #     if projection_type == "PlateCarree: Simple latitude/longitude":
+    #         extent = [-180, 180, -90, 90]
+    #     elif projection_type == "Geostationary":
+    #         extent = [-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823]
+        
+    #     # Check for user-defined ROI
+    #     if self.ui.ROI_combo.currentText() == "Input max/min long/lat":
+    #         extent = [float(self.ui.Min_Long_Value.text()), 
+    #                 float(self.ui.Max_Long_Value.text()), 
+    #                 float(self.ui.Min_Lat_Value.text()), 
+    #                 float(self.ui.Max_lat_Value.text())]
 
-            name = ["ref", "new", "diff"][idx]
+    #     # Create latitude/longitude grid (assuming data is on a regular lat/lon grid)
+    #     lons = np.linspace(extent[0], extent[1], ref_data.shape[1])
+    #     lats = np.linspace(extent[2], extent[3], ref_data.shape[0])
+    #     lon_grid, lat_grid = np.meshgrid(lons, lats)
+    #     file_names = ["ref", "new", "diff"]
 
-            fig = plt.figure(figsize=(18, 6))
-            ax = fig.add_subplot(1, 3, idx+1, projection=projection)
-            
-            if projection_type == "PlateCarree":
-                extent = (-180, 180, -90, 90)
-            elif projection_type == "Geostationary":
-                extent = (-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823)
+    #     for idx in range(3):
+    #         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': projection})
 
-            if self.ui.ROI_combo.currentText() == "Input max/min long/lat":
-                extent = (float(self.ui.Min_Long_Value.text()), 
-                          float(self.ui.Max_Long_Value.text()), 
-                          float(self.ui.Min_Lat_Value.text()), 
-                          float(self.ui.Max_lat_Value.text()))
+    #         # Use pcolormesh instead of imshow
+    #         img = ax.pcolormesh(lon_grid, lat_grid, data_list[idx], 
+    #                             transform=ccrs.PlateCarree(),
+    #                             cmap=cmaps[idx], vmin=ranges[idx][0], vmax=ranges[idx][1])
 
-            img = ax.imshow(data_list[idx], origin='upper', transform=projection, 
-                            extent=extent, cmap=cmaps[idx], 
-                            vmin=ranges[idx][0], vmax=ranges[idx][1])
-            
-            ax.gridlines(color='gray', alpha=0.5)
-            ax.coastlines(resolution='50m', color='black', linestyle='--')
-            
-            # plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
-            ax.set_title(f'{projection_type} | {titles[idx]}', fontsize=10, pad=20)
-            # plt.tight_layout()
-            output_name = os.path.join(output_dir, f'BRF_Comparison_{name}.png')
-            fig.savefig(output_name, bbox_inches='tight')
-        plt.close()
+    #         ax.set_extent(extent, crs=ccrs.PlateCarree())
+
+    #         # Add coastlines and gridlines
+    #         ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=0.8)
+    #         ax.gridlines(draw_labels=True, linestyle='--', alpha=0.5)
+
+    #         ax.set_title(f'{projection_type} | {titles[idx]}', fontsize=12, pad=10)
+    #         fig.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+
+    #         # Save figure
+    #         output_name = os.path.join(output_dir, file_names[idx] + ".png")
+    #         fig.savefig(output_name, bbox_inches='tight', dpi=150)
+    #         plt.close(fig)
+        return 1
 
     def save_results_to_file(results, output_dir):
         """将结果保存到文本文件"""
