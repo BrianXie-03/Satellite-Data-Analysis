@@ -164,7 +164,10 @@ class Comparison:
             'different_pixels': different_pixels,
             'value_stats': value_stats
         }
-    
+        
+        a = self.plot_qc_scatter(value_stats, flag_name)
+        b = self.plot_qc_line(value_stats, flag_name)
+
         return results
 
     def plot_qc_comparison(self, ref_qc, new_qc, flag_name, flag_info, output_dir):
@@ -268,8 +271,8 @@ class Comparison:
         new_mask = ((new_data != nc2[file2_var]._FillValue) & (new_data >= 0) & (new_data <= 1))
         valid_mask = ref_mask & new_mask
         
-        ref_valid = np.mean(ref_data[valid_mask])
-        new_valid = np.mean(new_data[valid_mask])
+        ref_valid = ref_data[valid_mask]
+        new_valid = new_data[valid_mask]
         diff = np.where(valid_mask, ref_data - new_data, np.nan)
         
         results = {
@@ -307,6 +310,73 @@ class Comparison:
         nc1.close()
         nc2.close()
         return all_results
+
+    def plot_qc_scatter(self, value_stats, flag_name, output_path="qc_proportion.png"):
+        categories = list(value_stats.keys())  # Extract QC values (0, 1, 2, ...)
+        descriptions = [value_stats[val]['description'] for val in categories]  # Descriptive labels
+
+        # Compute proportions (Reference in New)
+        # proportions = [
+        #     (value_stats[val]['matching'] / value_stats[val]['ref_count'] * 100) if value_stats[val]['ref_count'] > 0 else 0
+        #     for val in categories
+        # ]
+
+        # Compute proportions (Reference in New)
+        proportions1 = [ (value_stats[val]['ref_percentage']) for val in categories]
+        proportions2 = [ (value_stats[val]['new_percentage']) for val in categories]
+
+        x_positions = np.arange(len(categories))  # Assign numerical positions
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        # Scatter plot
+        ax.scatter(x_positions, proportions1, color="green", marker="o", s=100, label="Proportion (%)")
+        ax.scatter(x_positions, proportions2, color="red", marker="o", s=100, label="Proportion (%)")
+
+        # Formatting
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(descriptions, rotation=25, ha="right")
+        ax.set_ylabel("Proportion of Reference in New (%)")
+        ax.set_title(f"QC Proportion Scatter Plot ({flag_name.replace('_', ' ').title()})")
+        ax.axhline(y=100, color="gray", linestyle="--", alpha=0.5)  # Reference line at 100%
+        ax.legend()
+
+        # Save as PNG
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Scatter plot saved as {output_path}")
+        
+
+    def plot_qc_line(self, value_stats, flag_name, output_path="qc_line_plot.png"):
+        # Extract values and corresponding counts
+        categories = list(value_stats.keys())  # QC value indices (e.g., 0, 1, 2, ...)
+        descriptions = [value_stats[val]['description'] for val in categories]
+        
+        ref_counts = [value_stats[val]['ref_count'] for val in categories]
+        new_counts = [value_stats[val]['new_count'] for val in categories]
+
+        x_positions = np.arange(len(categories))
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        # Plot reference and new counts
+        ax.plot(x_positions, ref_counts, marker="o", linestyle="-", color="blue", label="Reference Count")
+        ax.plot(x_positions, new_counts, marker="s", linestyle="-", color="red", label="New Count")
+
+        # Fill space between the two lines
+        ax.fill_between(x_positions, ref_counts, new_counts, color="gray", alpha=0.3)
+
+        # Formatting
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(descriptions, rotation=30, ha="right")
+        ax.set_ylabel("Pixel Count")
+        ax.set_title(f"Reference vs New Pixel Count ({flag_name.replace('_', ' ').title()})")
+        ax.legend()
+
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Line graph saved as {output_path}")
+
 
     #changed
     def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
