@@ -22,6 +22,7 @@ class VisualsPanel:
             pass
 
         elif choice == 1:
+
             self.ui.vis_graph_diff.setVisible(True)
             self.display_image(self.ui.vis_graph_diff, "/home/brian/research/results/brf_analysis/scatterplot_comparison.png")
             print("Selected Scatter Plot")
@@ -34,12 +35,12 @@ class VisualsPanel:
             if type == 1:
                 self.ui.vis_graph_new.setVisible(True)
                 self.ui.vis_graph_ref.setVisible(True)
-                self.display_image(self.ui.vis_graph_new, "/home/brian/research/results/brf_analysis/QC_Histogram_New.png")
-                self.display_image(self.ui.vis_graph_ref, "/home/brian/research/results/brf_analysis/QC_Histogram_Reference.png")
+                self.display_image(self.ui.vis_graph_new, "/home/brian/research/results/brf_analysis/hist_file1.png")
+                self.display_image(self.ui.vis_graph_ref, "/home/brian/research/results/brf_analysis/hist_file2.png")
 
             elif type == 2:
                 self.ui.vis_graph_diff.setVisible(True)
-                self.display_image(self.ui.vis_graph_diff, "/home/brian/research/results/brf_analysis/QC_Histogram_Difference.png")
+                self.display_image(self.ui.vis_graph_diff, "/home/brian/research/results/brf_analysis/hist_difference.png")
 
             else:
                 pass

@@ -99,19 +99,18 @@ class StatPanel:
 
         if self.ui.qc_check.isChecked():
             bit_start = int(self.ui.input_start_bit.text())
-            bit_length = int(self.ui.input_bit_length.text())
-            qc_mask1 = self.extract_bits(extract_data1, bit_start, bit_length) == 0
-            qc_mask2 = self.extract_bits(extract_data2, bit_start, bit_length) == 0
-            mask = (
-                np.isfinite(extract_data1) &
-                np.isfinite(extract_data2) &
-                qc_mask1 & qc_mask2
-            )
-        else:
-            mask = (np.isfinite(extract_data1) & np.isfinite(extract_data2) )
+            bit_length = int(self.ui.input_bit_length.text())            
 
-        d1_clean = extract_data1[mask]
-        d2_clean = extract_data2[mask]
+            d1_clean = self.extract_bits(d1["Ref_QF"][:], bit_start, bit_length)
+            d2_clean = self.extract_bits(d2["DQF"][:], bit_start, bit_length)
+            mask = (np.isfinite(d1_clean) & np.isfinite(d2_clean) )
+            d1_clean = d1_clean[mask]
+            d2_clean = d2_clean[mask]
+
+        else:
+            mask = (~np.isnan(extract_data1) & ~np.isnan(extract_data2) )
+            d1_clean = extract_data1[mask]
+            d2_clean = extract_data2[mask]
 
         ## RMSE (Root Mean Square Error)
         rmse = np.sqrt(np.mean((d1_clean - d2_clean) ** 2))

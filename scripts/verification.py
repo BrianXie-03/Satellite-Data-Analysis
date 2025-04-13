@@ -182,15 +182,8 @@ class Comparison:
         diff = ref_bits - new_bits
 
         self.plot_qc_histogram(ref_bits, new_bits, diff, flag_name, flag_info, output_dir)
-
-        # print("Ref_bits")
-        # print(np.unique(ref_bits[~np.isnan(ref_bits)]))
-        # print("new bits")
-        # print(new_bits)
-        # print("diff")
-        # print(diff)
         
-        fig = plt.figure(figsize=(24, 8))
+        fig = plt.figure(figsize=(6, 4))
         
         # Standard WGS84 
         semi_major = 6378137.0
@@ -247,7 +240,7 @@ class Comparison:
         ref_values = ref_bits[~np.isnan(ref_bits)].flatten()
         new_values = new_bits[~np.isnan(new_bits)].flatten()
         diff_values = diff[~np.isnan(diff)].flatten()
-
+        
         categories = list(flag_info['values'].keys())
 
         bins = np.arange(min(categories) - 0.5, max(categories) + 0.5, 1)
@@ -257,13 +250,13 @@ class Comparison:
         diff_bins = np.arange(diff_min - 0.5, diff_max + 0.5, 1)
 
         datasets = [
-            ('Reference', ref_values, 'blue', bins), 
-            ('New', new_values, 'green', bins), 
-            ('Difference', diff_values, 'red', diff_bins)
+            ('hist_file1', ref_values, 'blue', bins), 
+            ('hist_file2', new_values, 'green', bins), 
+            ('hist_difference', diff_values, 'red', diff_bins)
         ]
 
         for title, values, color, bin_range in datasets:
-            fig, ax = plt.subplots(figsize=(6, 5))
+            fig, ax = plt.subplots(figsize=(5, 3))
 
             counts, bin_edges, _ = ax.hist(values, bins=bin_range, color=color, edgecolor='black', alpha=0.6, density=True)
 
@@ -272,13 +265,78 @@ class Comparison:
             else:
                 ax.set_xticks(categories)
 
-            ax.set_title(f"{title} QC Histogram - {flag_name.replace('_', ' ').title()}")
+            ax.set_title(f"{title} - {flag_name.replace('_', ' ').title()}")
             ax.set_xlabel("QC Value")
             ax.set_ylabel("Density")
 
-            output_name = os.path.join(output_dir, f'QC_Histogram_{title}.png')
+            output_name = os.path.join(output_dir, f'{title}.png')
             plt.savefig(output_name, bbox_inches='tight')
             plt.close(fig) 
+
+    def plot_histogram(self, file1, file2, output_path="results/brf_analysis"):
+        d1 = xr.open_dataset(file1)
+        d2 = xr.open_dataset(file2)
+
+        channel1 = str(self.ui.fileDropdown1.currentText())
+        channel2 = str(self.ui.fileDropdown2.currentText())
+
+        data1 = d1[channel1][:].values.flatten()
+        data2 = d2[channel2][:].values.flatten()
+
+        if self.ui.qc_check.isChecked():
+            bit_start = int(self.ui.input_start_bit.text())
+            bit_length = int(self.ui.input_bit_length.text())
+
+            qc1 = self.extract_bits(d1["Ref_QF"][:].values.flatten(), bit_start, bit_length)
+            qc2 = self.extract_bits(d2["DQF"][:].values.flatten(), bit_start, bit_length)
+
+            valid_mask = (qc1 == 0) & (qc2 == 0) & np.isfinite(data1) & np.isfinite(data2)
+
+            data1 = data1[valid_mask]
+            data2 = data2[valid_mask]
+        else:
+            valid_mask = np.isfinite(data1) & np.isfinite(data2)
+            data1 = data1[valid_mask]
+            data2 = data2[valid_mask]
+
+        data_diff = data1 - data2
+
+        # Create bins
+        bins_common = np.linspace(min(data1.min(), data2.min()), max(data1.max(), data2.max()), 100)
+        bins_diff = np.linspace(data_diff.min(), data_diff.max(), 100)
+
+        # Save File 1 histogram
+        plt.figure(figsize=(5, 4))
+        plt.hist(data1, bins=bins_common, color='blue', alpha=0.7)
+        plt.title("File 1 Histogram")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        file1_path = os.path.join(output_path, "hist_file1.png")
+        plt.savefig(file1_path, bbox_inches='tight')
+        plt.close()
+
+        # Save File 2 histogram
+        plt.figure(figsize=(5, 4))
+        plt.hist(data2, bins=bins_common, color='orange', alpha=0.7)
+        plt.title("File 2 Histogram")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        file2_path = os.path.join(output_path, "hist_file2.png")
+        plt.savefig(file2_path, bbox_inches='tight')
+        plt.close()
+
+        # Save Difference histogram
+        plt.figure(figsize=(5, 4))
+        plt.hist(data_diff, bins=bins_diff, color='green', alpha=0.7)
+        plt.title("Difference Histogram")
+        plt.xlabel("Difference")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        diff_path = os.path.join(output_path, "hist_difference.png")
+        plt.savefig(diff_path, bbox_inches='tight')
+        plt.close()
 
     def analyze_aod_availability_changes(self, ref_bits, new_bits, valid_mask):
         """分析AOD可用性标记的变化情况，并采样不同的像素"""
@@ -352,7 +410,7 @@ class Comparison:
             output_dir,
         )
         
-        ref_qc = nc1['Ref_QF'][:]
+        ref_qc = nc1['Ref_QF'][:] 
         new_qc = nc2['DQF'][:]
         
         ref_qc_masked = np.where(valid_mask, ref_qc, np.nan)
@@ -362,49 +420,13 @@ class Comparison:
             qc_results = self.compare_qc_flags(ref_qc_masked, new_qc_masked, output_dir)
             all_results = {'reflectance': results, 'qc': qc_results}
         else:
+            self.plot_histogram(file1, file2)
             all_results = {'reflectance': results}
 
-
         self.plot_scatter_plot(file1, file2)
-        
         nc1.close()
         nc2.close()
         return all_results
-
-    def plot_qc_scatter(self, value_stats, flag_name, output_path="qc_proportion.png"):
-        categories = list(value_stats.keys())  # Extract QC values (0, 1, 2, ...)
-        descriptions = [value_stats[val]['description'] for val in categories]  # Descriptive labels
-
-        # Compute proportions (Reference in New)
-        # proportions = [
-        #     (value_stats[val]['matching'] / value_stats[val]['ref_count'] * 100) if value_stats[val]['ref_count'] > 0 else 0
-        #     for val in categories
-        # ]
-
-        # Compute proportions (Reference in New)
-        proportions1 = [ (value_stats[val]['ref_percentage']) for val in categories]
-        proportions2 = [ (value_stats[val]['new_percentage']) for val in categories]
-
-        x_positions = np.arange(len(categories))  # Assign numerical positions
-
-        fig, ax = plt.subplots(figsize=(8, 5))
-
-        # Scatter plot
-        ax.scatter(x_positions, proportions1, color="green", marker="o", s=100, label="Proportion (%)")
-        ax.scatter(x_positions, proportions2, color="red", marker="o", s=100, label="Proportion (%)")
-
-        # Formatting
-        ax.set_xticks(x_positions)
-        ax.set_xticklabels(descriptions, rotation=25, ha="right")
-        ax.set_ylabel("Proportion of Reference in New (%)")
-        ax.set_title(f"QC Proportion Scatter Plot ({flag_name.replace('_', ' ').title()})")
-        ax.axhline(y=100, color="gray", linestyle="--", alpha=0.5)  # Reference line at 100%
-        ax.legend()
-
-        # Save as PNG
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
-        plt.close(fig)
-        print(f"Scatter plot saved as {output_path}")
         
     def plot_qc_line(self, value_stats, flag_name, output_path="qc_line_plot.png"):
         # Extract values and corresponding counts
@@ -445,14 +467,26 @@ class Comparison:
 
         extract_data1 = d1[channel1][:].values.flatten()
         extract_data2 = d2[channel2][:].values.flatten()
-        mask = (~np.isnan(extract_data1)) & (~np.isnan(extract_data2)) 
-        # & (extract_data1 >= 0) & (extract_data1 <= 20000) & (extract_data2 >= 0) & (extract_data2 <= 20000)
 
-        d1_clean = extract_data1[mask]
-        d2_clean = extract_data2[mask]
+        if self.ui.qc_check.isChecked():
+            bit_start = int(self.ui.input_start_bit.text())
+            bit_length = int(self.ui.input_bit_length.text())            
 
+            d1_clean = self.extract_bits(d1["Ref_QF"][:].values.flatten(), bit_start, bit_length)
+            d2_clean = self.extract_bits(d2["DQF"][:].values.flatten(), bit_start, bit_length)
+            mask = (np.isfinite(d1_clean) & np.isfinite(d2_clean) )
+            d1_clean = d1_clean[mask].astype(int)
+            d2_clean = d2_clean[mask].astype(int)
+        else:  
+            mask = (~np.isnan(extract_data1)) & (~np.isnan(extract_data2)) 
+            d1_clean = extract_data1[mask]
+            d2_clean = extract_data2[mask]
+            # & (extract_data1 >= 0) & (extract_data1 <= 20000) & (extract_data2 >= 0) & (extract_data2 <= 20000)
+
+        print(d1_clean)
+        print(d2_clean)
         plt.figure(figsize=(8, 5))
-        plt.scatter(d1_clean, d2_clean, s=0.5, alpha=0.3, color='purple')
+        plt.scatter(d1_clean, d2_clean, s=3, alpha=0.3, color='purple')
         plt.xlabel("file 1")
         plt.ylabel("file 2")
         plt.title("Scatter Plot Comparison: File 1 vs File 2")
@@ -488,7 +522,7 @@ class Comparison:
         extent = (-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823)
 
         for label, data, cmap, vlim in data_items:
-            fig = plt.figure(figsize=(8, 8))
+            fig = plt.figure(figsize=(6, 4))
             ax = fig.add_subplot(1, 1, 1, projection=projection)
 
             img = ax.imshow(data, origin='upper', transform=projection, extent=extent,
@@ -504,6 +538,43 @@ class Comparison:
             fig.savefig(output_name, bbox_inches='tight')
             plt.close()
 
+    def save_results_to_file(results, output_dir):
+        """将结果保存到文本文件"""
+        with open(os.path.join(output_dir, 'brf_comparison_results.txt'), 'w') as f:
+            # 保存反射率结果
+            f.write("BRF Comparison Results\n")
+            f.write("=====================\n\n")
+            
+            for band, stats in results['reflectance'].items():
+                f.write(f"{band} Statistics:\n")
+                f.write("-----------------\n")
+                f.write(f"Reference mean: {stats['ref_mean']:.6f}\n")
+                f.write(f"New mean: {stats['new_mean']:.6f}\n")
+                f.write(f"Mean difference: {stats['mean_diff']:.6f}\n")
+                f.write(f"Standard deviation: {stats['std_diff']:.6f}\n")
+                f.write(f"Maximum absolute difference: {stats['max_diff']:.6f}\n")
+                f.write(f"Valid pixels: {stats['valid_pixels']}\n")
+                f.write(f"Relative difference: {stats['relative_diff_percent']:.2f}%\n\n")
+            
+            # 保存QC结果
+            f.write("\nQC Flag Comparison Results\n")
+            f.write("=========================\n\n")
+            
+            for flag_name, flag_results in results['qc'].items():
+                f.write(f"\n{flag_name.replace('_', ' ').title()}:\n")
+                f.write("-" * (len(flag_name) + 1) + "\n")
+                f.write(f"Matching percentage: {flag_results['matching_percentage']:.2f}%\n")
+                f.write(f"Total pixels: {flag_results['total_pixels']}\n")
+                f.write(f"Different pixels: {flag_results['different_pixels']}\n\n")
+                
+                f.write("Value distribution:\n")
+                for value, stats in flag_results['value_stats'].items():
+                    f.write(f"\nValue {value} ({stats['description']}):\n")
+                    f.write(f"  Reference count: {stats['ref_count']}\n")
+                    f.write(f"  New count: {stats['new_count']}\n")
+                    f.write(f"  Matching pixels: {stats['matching']}\n")
+                    f.write(f"  Reference percentage: {stats['ref_percentage']:.2f}%\n")
+                    f.write(f"  New percentage: {stats['new_percentage']:.2f}%\n")
 
     #changed
     # def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
@@ -591,40 +662,31 @@ class Comparison:
     # #         plt.close(fig)
     #     return 1
 
-    def save_results_to_file(results, output_dir):
-        """将结果保存到文本文件"""
-        with open(os.path.join(output_dir, 'brf_comparison_results.txt'), 'w') as f:
-            # 保存反射率结果
-            f.write("BRF Comparison Results\n")
-            f.write("=====================\n\n")
-            
-            for band, stats in results['reflectance'].items():
-                f.write(f"{band} Statistics:\n")
-                f.write("-----------------\n")
-                f.write(f"Reference mean: {stats['ref_mean']:.6f}\n")
-                f.write(f"New mean: {stats['new_mean']:.6f}\n")
-                f.write(f"Mean difference: {stats['mean_diff']:.6f}\n")
-                f.write(f"Standard deviation: {stats['std_diff']:.6f}\n")
-                f.write(f"Maximum absolute difference: {stats['max_diff']:.6f}\n")
-                f.write(f"Valid pixels: {stats['valid_pixels']}\n")
-                f.write(f"Relative difference: {stats['relative_diff_percent']:.2f}%\n\n")
-            
-            # 保存QC结果
-            f.write("\nQC Flag Comparison Results\n")
-            f.write("=========================\n\n")
-            
-            for flag_name, flag_results in results['qc'].items():
-                f.write(f"\n{flag_name.replace('_', ' ').title()}:\n")
-                f.write("-" * (len(flag_name) + 1) + "\n")
-                f.write(f"Matching percentage: {flag_results['matching_percentage']:.2f}%\n")
-                f.write(f"Total pixels: {flag_results['total_pixels']}\n")
-                f.write(f"Different pixels: {flag_results['different_pixels']}\n\n")
-                
-                f.write("Value distribution:\n")
-                for value, stats in flag_results['value_stats'].items():
-                    f.write(f"\nValue {value} ({stats['description']}):\n")
-                    f.write(f"  Reference count: {stats['ref_count']}\n")
-                    f.write(f"  New count: {stats['new_count']}\n")
-                    f.write(f"  Matching pixels: {stats['matching']}\n")
-                    f.write(f"  Reference percentage: {stats['ref_percentage']:.2f}%\n")
-                    f.write(f"  New percentage: {stats['new_percentage']:.2f}%\n")
+    # def plot_qc_scatter(self, value_stats, flag_name, output_path="qc_proportion.png"):
+#         categories = list(value_stats.keys())  # Extract QC values (0, 1, 2, ...)
+#         descriptions = [value_stats[val]['description'] for val in categories]  # Descriptive labels
+
+#         # Compute proportions (Reference in New)
+#         proportions1 = [ (value_stats[val]['ref_percentage']) for val in categories]
+#         proportions2 = [ (value_stats[val]['new_percentage']) for val in categories]
+
+#         x_positions = np.arange(len(categories))  # Assign numerical positions
+
+#         fig, ax = plt.subplots(figsize=(8, 5))
+
+#         # Scatter plot
+#         ax.scatter(x_positions, proportions1, color="green", marker="o", s=100, label="Proportion (%)")
+#         ax.scatter(x_positions, proportions2, color="red", marker="o", s=100, label="Proportion (%)")
+
+#         # Formatting
+#         ax.set_xticks(x_positions)
+#         ax.set_xticklabels(descriptions, rotation=25, ha="right")
+#         ax.set_ylabel("Proportion of Reference in New (%)")
+#         ax.set_title(f"QC Proportion Scatter Plot ({flag_name.replace('_', ' ').title()})")
+#         ax.axhline(y=100, color="gray", linestyle="--", alpha=0.5)  # Reference line at 100%
+#         ax.legend()
+
+#         # Save as PNG
+#         plt.savefig(output_path, dpi=300, bbox_inches="tight")
+#         plt.close(fig)
+#         print(f"Scatter plot saved as {output_path}")
