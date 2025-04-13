@@ -5,15 +5,17 @@ import cartopy.crs as ccrs
 from netCDF4 import Dataset
 import cartopy.feature as cfeature
 from scipy.ndimage import map_coordinates
-
-
+import scipy.stats as stats
+from sklearn.decomposition import PCA
+from scipy.stats import pearsonr
+import xarray as xr
 
 class Comparison:
     def __init__(self, ui):
         self.ui = ui  # Reference to the main UI
 
     def extract_bits(self, qc_data, start_bit, num_bits):
-        qc_int = np.nan_to_num(qc_data, nan=255).astype(np.uint8)
+        qc_int = np.nan_to_num(qc_data, nan=0).astype(np.uint8)
         mask = ((1 << num_bits) - 1) << start_bit
         extracted_bits = (qc_int & mask) >> start_bit
 
@@ -135,9 +137,7 @@ class Comparison:
         print(f"  Matching percentage: {(matching_pixels / total_valid_pixels * 100):.2f}%")
         
         print("  Value distribution:")
-        for value in range(bit_length):
-            # if value < bit_start or value >= (bit_start + bit_length):
-            #     continue
+        for value in range(2**bit_length):
 
             ref_count = np.sum((ref_bits == value) & valid_pixels)
             new_count = np.sum((new_bits == value) & valid_pixels)
@@ -164,62 +164,121 @@ class Comparison:
             'different_pixels': different_pixels,
             'value_stats': value_stats
         }
-        
-        a = self.plot_qc_scatter(value_stats, flag_name)
-        b = self.plot_qc_line(value_stats, flag_name)
+
 
         return results
 
     def plot_qc_comparison(self, ref_qc, new_qc, flag_name, flag_info, output_dir):
+        
+        # Collecting bit information such as start and length
         bit_start = int(self.ui.input_start_bit.text())
         bit_length = int(self.ui.input_bit_length.text())
+        
+        # extract the specific bits for each of the files
         ref_bits = self.extract_bits(ref_qc, bit_start, bit_length)
         new_bits = self.extract_bits(new_qc, bit_start, bit_length)
         
+        # find the difference between the bits
         diff = ref_bits - new_bits
+
+        self.plot_qc_histogram(ref_bits, new_bits, diff, flag_name, flag_info, output_dir)
+
+        # print("Ref_bits")
+        # print(np.unique(ref_bits[~np.isnan(ref_bits)]))
+        # print("new bits")
+        # print(new_bits)
+        # print("diff")
+        # print(diff)
         
         fig = plt.figure(figsize=(24, 8))
         
+        # Standard WGS84 
         semi_major = 6378137.0
+        # Ellipsoid WGS84
         semi_minor = 6356752.31414
+        # For GOES-East data
         longitude_of_projection_origin = -75.0
+        # Normal for geostationary satellites (like GOES, Himawari, Meteosat)
         perspective_point_height = 3.5786023E7
+
+        # Set up required parameter for projection type, in this case a globe with the major and minor axis specified above
         globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
+        
+        # established projection type (in this case its Geostationary with previously identified parameters)
         projection = ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
                                     satellite_height=perspective_point_height, globe=globe)
         
+
+        # Identify the three data we are trying to gain
         titles = ['Reference', 'New', 'Difference']
         data_list = [ref_bits, new_bits, diff]
         
-        # 为QC标志设置合适的colormap
+        # Establish the largest bit so if flag_info['bits'] = 3, then itll be 1000 - 1 = 0111 which is the bits used 
         max_value = (1 << flag_info['bits']) - 1
         cmaps = ['viridis', 'viridis', 'seismic']
         ranges = [(0, max_value), (0, max_value), (-max_value, max_value)]
         
-        for idx in range(3):
-            ax = fig.add_subplot(1, 3, idx+1, projection=projection)
-            
-            img = ax.imshow(data_list[idx], origin='upper', transform=projection,
-                        extent=(-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823),
-                        cmap=cmaps[idx], vmin=ranges[idx][0], vmax=ranges[idx][1])
-            
+        for idx, (title, data, cmap, value_range) in enumerate(zip(titles, data_list, cmaps, ranges)):
+            fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': projection})
+
+            img = ax.imshow(data, origin='upper', transform=projection,
+                            extent=(-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823),
+                            cmap=cmap, vmin=value_range[0], vmax=value_range[1])
+
             ax.gridlines(color='gray', alpha=0.5)
             ax.coastlines(resolution='50m', color='black', linestyle='--')
-            
-            # # 添加colorbar
-            # cbar = plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
-            
-            # # 为前两个图（参考和新数据）添加值的说明
-            # if idx < 2:
-            #     cbar.set_ticks(range(max_value + 1))
-            #     cbar.set_ticklabels([f"{i}\n({flag_info['values'][i]})" for i in range(max_value + 1)])
-            
-            ax.set_title(f'{titles[idx]} - {flag_name.replace("_", " ").title()}', fontsize=14, pad=20)
-            
-            plt.tight_layout()
-            output_name = os.path.join(output_dir, f'BRF_QC_Comparison_{flag_name}.png')
-            fig.savefig(output_name, bbox_inches='tight')
-            plt.close()
+
+            cbar = plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+
+            if idx < 2:
+                cbar.set_ticks(range(max_value + 1))
+                # cbar.set_ticklabels([f"{i}\n({flag_info['values'][i]})" for i in range(max_value + 1)])
+
+            ax.set_title(f'{title} - {flag_name.replace("_", " ").title()}', fontsize=14, pad=20)
+
+            output_name = os.path.join(output_dir, f'BRF_{title}.png')
+            plt.savefig(output_name, bbox_inches='tight')
+            plt.close(fig)
+
+    def plot_qc_histogram(self, ref_bits, new_bits, diff, flag_name, flag_info, output_dir):
+        """Plot and save separate histograms for QC flag values."""
+
+        # Flatten arrays and remove NaNs
+        ref_values = ref_bits[~np.isnan(ref_bits)].flatten()
+        new_values = new_bits[~np.isnan(new_bits)].flatten()
+        diff_values = diff[~np.isnan(diff)].flatten()
+
+        categories = list(flag_info['values'].keys())
+
+        bins = np.arange(min(categories) - 0.5, max(categories) + 0.5, 1)
+
+        # For the difference histogram, extend bin range to include negative values
+        diff_min, diff_max = int(np.min(diff_values)), int(np.max(diff_values))
+        diff_bins = np.arange(diff_min - 0.5, diff_max + 0.5, 1)
+
+        datasets = [
+            ('Reference', ref_values, 'blue', bins), 
+            ('New', new_values, 'green', bins), 
+            ('Difference', diff_values, 'red', diff_bins)
+        ]
+
+        for title, values, color, bin_range in datasets:
+            fig, ax = plt.subplots(figsize=(6, 5))
+
+            counts, bin_edges, _ = ax.hist(values, bins=bin_range, color=color, edgecolor='black', alpha=0.6, density=True)
+
+            if title == "Difference":
+                ax.set_xticks(range(diff_min, diff_max + 1)) 
+            else:
+                ax.set_xticks(categories)
+
+            ax.set_title(f"{title} QC Histogram - {flag_name.replace('_', ' ').title()}")
+            ax.set_xlabel("QC Value")
+            ax.set_ylabel("Density")
+
+            output_name = os.path.join(output_dir, f'QC_Histogram_{title}.png')
+            plt.savefig(output_name, bbox_inches='tight')
+            plt.close(fig) 
 
     def analyze_aod_availability_changes(self, ref_bits, new_bits, valid_mask):
         """分析AOD可用性标记的变化情况，并采样不同的像素"""
@@ -285,27 +344,28 @@ class Comparison:
             'relative_diff_percent': (np.nanmean(np.abs(diff)) / np.nanmean(np.abs(ref_valid))) * 100
         }
         
-        # self.plot_comparison(
-        #     ref_data,
-        #     new_data,
-        #     diff,
-        #     str(file1_var[2:3]),
-        #     output_dir,
-        #     projection_type=projection
-        # )
+        self.plot_comparison(
+            ref_data,
+            new_data,
+            diff,
+            str(file1_var[2:3]),
+            output_dir,
+        )
         
         ref_qc = nc1['Ref_QF'][:]
         new_qc = nc2['DQF'][:]
         
         ref_qc_masked = np.where(valid_mask, ref_qc, np.nan)
         new_qc_masked = np.where(valid_mask, new_qc, np.nan)
-        
-        qc_results = self.compare_qc_flags(ref_qc_masked, new_qc_masked, output_dir)
-        
-        all_results = {
-            'reflectance': results,
-            'qc': qc_results
-        }
+
+        if self.ui.qc_check.isChecked():
+            qc_results = self.compare_qc_flags(ref_qc_masked, new_qc_masked, output_dir)
+            all_results = {'reflectance': results, 'qc': qc_results}
+        else:
+            all_results = {'reflectance': results}
+
+
+        self.plot_scatter_plot(file1, file2)
         
         nc1.close()
         nc2.close()
@@ -346,7 +406,6 @@ class Comparison:
         plt.close(fig)
         print(f"Scatter plot saved as {output_path}")
         
-
     def plot_qc_line(self, value_stats, flag_name, output_path="qc_line_plot.png"):
         # Extract values and corresponding counts
         categories = list(value_stats.keys())  # QC value indices (e.g., 0, 1, 2, ...)
@@ -377,92 +436,160 @@ class Comparison:
         plt.close(fig)
         print(f"Line graph saved as {output_path}")
 
+    def plot_scatter_plot(self, file1, file2, output_path = "scatterplot_comparison.png"):
+        d1 = xr.open_dataset(file1)
+        d2 = xr.open_dataset(file2)
+
+        channel1 = str(self.ui.fileDropdown1.currentText())
+        channel2 = str(self.ui.fileDropdown2.currentText())
+
+        extract_data1 = d1[channel1][:].values.flatten()
+        extract_data2 = d2[channel2][:].values.flatten()
+        mask = (~np.isnan(extract_data1)) & (~np.isnan(extract_data2)) 
+        # & (extract_data1 >= 0) & (extract_data1 <= 20000) & (extract_data2 >= 0) & (extract_data2 <= 20000)
+
+        d1_clean = extract_data1[mask]
+        d2_clean = extract_data2[mask]
+
+        plt.figure(figsize=(8, 5))
+        plt.scatter(d1_clean, d2_clean, s=0.5, alpha=0.3, color='purple')
+        plt.xlabel("file 1")
+        plt.ylabel("file 2")
+        plt.title("Scatter Plot Comparison: File 1 vs File 2")
+        plt.grid(True)
+
+        # 1:1 line for visual comparison
+        min_val = min(d1_clean.min(), d2_clean.min())
+        max_val = max(d1_clean.max(), d2_clean.max())
+        plt.plot([min_val, max_val], [min_val, max_val], 'r--', label="1:1 line")
+        # plt.legend()
+        plt.axis('square')
+        output_path = "/home/brian/research/results/brf_analysis/scatterplot_comparison.png"
+        plt.savefig(output_path, bbox_inches='tight')
+        print(f"Line graph saved as {output_path}")
+
+    def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir):
+        """Plot reference, new, and difference data separately."""
+        data_items = [
+            ('Reference', ref_data, 'viridis', (np.nanmin(ref_data), np.nanmax(ref_data))),
+            ('New', new_data, 'viridis', (np.nanmin(new_data), np.nanmax(new_data))),
+            ('Difference', diff_data, 'seismic', (-np.nanmax(np.abs(diff_data)), np.nanmax(np.abs(diff_data))))
+        ]
+
+        # Projection setup
+        semi_major = 6378137.0
+        semi_minor = 6356752.31414
+        longitude_of_projection_origin = -75.0
+        perspective_point_height = 3.5786023E7
+        globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
+        projection = ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
+                                        satellite_height=perspective_point_height, globe=globe)
+
+        extent = (-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823)
+
+        for label, data, cmap, vlim in data_items:
+            fig = plt.figure(figsize=(8, 8))
+            ax = fig.add_subplot(1, 1, 1, projection=projection)
+
+            img = ax.imshow(data, origin='upper', transform=projection, extent=extent,
+                            cmap=cmap, vmin=vlim[0], vmax=vlim[1])
+            
+            ax.gridlines(color='gray', alpha=0.5)
+            ax.coastlines(resolution='50m', color='black', linestyle='--')
+            plt.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+            ax.set_title(f'{label} - {title}', fontsize=14, pad=20)
+
+            plt.tight_layout()
+            output_name = os.path.join(output_dir, f'BRF_{label}.png')
+            fig.savefig(output_name, bbox_inches='tight')
+            plt.close()
+
 
     #changed
-    def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
+    # def plot_comparison(self, ref_data, new_data, diff_data, title, output_dir, projection_type):
 
-    #     def get_projection(projection_type):
-    #         semi_major = 6378137.0
-    #         semi_minor = 6356752.31414
-    #         longitude_of_projection_origin = -75.0
-    #         perspective_point_height = 3.5786023E7
+    # #     def get_projection(projection_type):
+    # #         semi_major = 6378137.0
+    # #         semi_minor = 6356752.31414
+    # #         longitude_of_projection_origin = -75.0
+    # #         perspective_point_height = 3.5786023E7
 
-    #         if projection_type == "Geostationary":
-    #             globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
-    #             return ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
-    #                                     satellite_height=perspective_point_height, globe=globe)
+    # #         if projection_type == "Geostationary":
+    # #             globe = ccrs.Globe(ellipse='sphere', semimajor_axis=semi_major, semiminor_axis=semi_minor)
+    # #             return ccrs.Geostationary(central_longitude=longitude_of_projection_origin, 
+    # #                                     satellite_height=perspective_point_height, globe=globe)
 
-    #         elif projection_type == "PlateCarree: Simple latitude/longitude":
-    #             return ccrs.PlateCarree()
+    # #         elif projection_type == "PlateCarree: Simple latitude/longitude":
+    # #             return ccrs.PlateCarree()
 
-    #         # elif projection_type == "Sinusoidal":
-    #         #     return ccrs.Sinusoidal(central_longitude=0)
+    # #         # elif projection_type == "Sinusoidal":
+    # #         #     return ccrs.Sinusoidal(central_longitude=0)
 
-    #         # elif projection_type == "NorthPolarStereo":
-    #         #     return ccrs.NorthPolarStereo(central_longitude=0, true_scale_latitude=70)
+    # #         # elif projection_type == "NorthPolarStereo":
+    # #         #     return ccrs.NorthPolarStereo(central_longitude=0, true_scale_latitude=70)
 
-    #         # elif projection_type == "SouthPolarStereo":
-    #         #     return ccrs.SouthPolarStereo(central_longitude=0, true_scale_latitude=-71)
+    # #         # elif projection_type == "SouthPolarStereo":
+    # #         #     return ccrs.SouthPolarStereo(central_longitude=0, true_scale_latitude=-71)
 
-    #         else:
-    #             raise ValueError(f"Unsupported projection type: {projection_type}")
+    # #         else:
+    # #             raise ValueError(f"Unsupported projection type: {projection_type}")
         
-    #     projection = get_projection(projection_type)
+    # #     projection = get_projection(projection_type)
     
-    #     titles = ['Reference', 'New', 'Difference']
-    #     data_list = [ref_data, new_data, diff_data]
-    #     cmaps = ['viridis', 'viridis', 'seismic']
+    # #     titles = ['Reference', 'New', 'Difference']
+    # #     data_list = [ref_data, new_data, diff_data]
+    # #     cmaps = ['viridis', 'viridis', 'seismic']
         
-    #     # 计算数据范围
-    #     valid_min = min(np.nanmin(ref_data), np.nanmin(new_data))
-    #     valid_max = max(np.nanmax(ref_data), np.nanmax(new_data))
-    #     diff_range = max(abs(np.nanmin(diff_data)), abs(np.nanmax(diff_data)))
+    # #     # 计算数据范围
+    # #     valid_min = min(np.nanmin(ref_data), np.nanmin(new_data))
+    # #     valid_max = max(np.nanmax(ref_data), np.nanmax(new_data))
+    # #     diff_range = max(abs(np.nanmin(diff_data)), abs(np.nanmax(diff_data)))
         
-    #     ranges = [(valid_min, valid_max), (valid_min, valid_max), (-diff_range, diff_range)]
+    # #     ranges = [(valid_min, valid_max), (valid_min, valid_max), (-diff_range, diff_range)]
 
-    #     fig, axes = plt.subplots(1, 3, figsize=(18, 6), subplot_kw={'projection': projection})
+    # #     fig, axes = plt.subplots(1, 3, figsize=(18, 6), subplot_kw={'projection': projection})
         
-    #        # Set extent based on projection type
-    #     if projection_type == "PlateCarree: Simple latitude/longitude":
-    #         extent = [-180, 180, -90, 90]
-    #     elif projection_type == "Geostationary":
-    #         extent = [-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823]
+    # #        # Set extent based on projection type
+    # #     if projection_type == "PlateCarree: Simple latitude/longitude":
+    # #         extent = [-180, 180, -90, 90]
+    # #     elif projection_type == "Geostationary":
+    # #         extent = [-5434894.8823, 5434894.8823, -5434894.8823, 5434894.8823]
         
-    #     # Check for user-defined ROI
-    #     if self.ui.ROI_combo.currentText() == "Input max/min long/lat":
-    #         extent = [float(self.ui.Min_Long_Value.text()), 
-    #                 float(self.ui.Max_Long_Value.text()), 
-    #                 float(self.ui.Min_Lat_Value.text()), 
-    #                 float(self.ui.Max_lat_Value.text())]
+    # #     # Check for user-defined ROI
+    # #     if self.ui.ROI_combo.currentText() == "Input max/min long/lat":
+    # #         extent = [float(self.ui.Min_Long_Value.text()), 
+    # #                 float(self.ui.Max_Long_Value.text()), 
+    # #                 float(self.ui.Min_Lat_Value.text()), 
+    # #                 float(self.ui.Max_lat_Value.text())]
 
-    #     # Create latitude/longitude grid (assuming data is on a regular lat/lon grid)
-    #     lons = np.linspace(extent[0], extent[1], ref_data.shape[1])
-    #     lats = np.linspace(extent[2], extent[3], ref_data.shape[0])
-    #     lon_grid, lat_grid = np.meshgrid(lons, lats)
-    #     file_names = ["ref", "new", "diff"]
+    # #     # Create latitude/longitude grid (assuming data is on a regular lat/lon grid)
+    # #     lons = np.linspace(extent[0], extent[1], ref_data.shape[1])
+    # #     lats = np.linspace(extent[2], extent[3], ref_data.shape[0])
+    # #     lon_grid, lat_grid = np.meshgrid(lons, lats)
+    # #     file_names = ["ref", "new", "diff"]
 
-    #     for idx in range(3):
-    #         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': projection})
+    # #     for idx in range(3):
+    # #         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': projection})
 
-    #         # Use pcolormesh instead of imshow
-    #         img = ax.pcolormesh(lon_grid, lat_grid, data_list[idx], 
-    #                             transform=ccrs.PlateCarree(),
-    #                             cmap=cmaps[idx], vmin=ranges[idx][0], vmax=ranges[idx][1])
+    # #         # Use pcolormesh instead of imshow
+    # #         img = ax.pcolormesh(lon_grid, lat_grid, data_list[idx], 
+    # #                             transform=ccrs.PlateCarree(),
+    # #                             cmap=cmaps[idx], vmin=ranges[idx][0], vmax=ranges[idx][1])
 
-    #         ax.set_extent(extent, crs=ccrs.PlateCarree())
+    # #         ax.set_extent(extent, crs=ccrs.PlateCarree())
 
-    #         # Add coastlines and gridlines
-    #         ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=0.8)
-    #         ax.gridlines(draw_labels=True, linestyle='--', alpha=0.5)
+    # #         # Add coastlines and gridlines
+    # #         ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=0.8)
+    # #         ax.gridlines(draw_labels=True, linestyle='--', alpha=0.5)
 
-    #         ax.set_title(f'{projection_type} | {titles[idx]}', fontsize=12, pad=10)
-    #         fig.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
+    # #         ax.set_title(f'{projection_type} | {titles[idx]}', fontsize=12, pad=10)
+    # #         fig.colorbar(img, ax=ax, orientation='horizontal', shrink=0.7, pad=0.05)
 
-    #         # Save figure
-    #         output_name = os.path.join(output_dir, file_names[idx] + ".png")
-    #         fig.savefig(output_name, bbox_inches='tight', dpi=150)
-    #         plt.close(fig)
-        return 1
+    # #         # Save figure
+    # #         output_name = os.path.join(output_dir, file_names[idx] + ".png")
+    # #         fig.savefig(output_name, bbox_inches='tight', dpi=150)
+    # #         plt.close(fig)
+    #     return 1
 
     def save_results_to_file(results, output_dir):
         """将结果保存到文本文件"""
