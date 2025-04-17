@@ -49,5 +49,9 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 │   └── verification.py         # Comparison class - handles comparison logic, QC filtering
 └── README.md                    # Project documentation
 ```
-
 ---
+
+## 👨‍💻 Author
+
+**Brian Xie**  
+Feel free to reach out with questions or contributions!
