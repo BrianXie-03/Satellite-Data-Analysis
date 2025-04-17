@@ -55,3 +55,7 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 
 **Brian Xie**  
 Feel free to reach out with questions or contributions!
+
+---
+
+© 2025 Brian Xie — All rights reserved.
