@@ -47,7 +47,7 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 ├── scripts/
 │   ├── __init__.py
 │   └── verification.py         # Comparison class - handles comparison logic, QC filtering
-├── README.md                    # Project documentation
+└── README.md                    # Project documentation
 ```
 
 ---
