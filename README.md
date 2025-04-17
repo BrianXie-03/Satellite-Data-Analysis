@@ -35,6 +35,7 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 8. **Visualize**: Use the 'Visuals' tab to compare statistical plots and observe data trends.
 ---
 
+```bash
 ├── interface.py                 # App entry point; initializes and runs the GUI
 ├── ui_interface.py              # Main UI class (from .ui or manual layout)
 ├── interface.ui                 # .ui file for integration
@@ -47,6 +48,7 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 │   ├── __init__.py
 │   └── verification.py         # Comparison class - handles comparison logic, QC filtering
 ├── README.md                    # Project documentation
+```
 ├── requirements.txt             # Dependencies list
 └── LICENSE                      # (optional) License for your code
 
