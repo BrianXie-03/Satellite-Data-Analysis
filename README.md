@@ -34,3 +34,20 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 7. **Analyze Stats**: Head to the 'Stat' panel for statistical summaries and distribution comparisons as well as map projection.
 8. **Visualize**: Use the 'Visuals' tab to compare statistical plots and observe data trends.
 ---
+
+├── interface.py                 # App entry point; initializes and runs the GUI
+├── ui_interface.py              # Main UI class (from .ui or manual layout)
+├── interface.ui                 # .ui file for integration
+├── ui/
+│   ├── __init__.py
+│   ├── data.py                  # DataPanel - handles file input and variable selection
+│   ├── stats.py                 # StatPanel - displays computed statistics
+│   └── visual.py                # VisualsPanel - renders matplotlib plots
+├── scripts/
+│   ├── __init__.py
+│   └── verification.py         # Comparison class - handles comparison logic, QC filtering
+├── README.md                    # Project documentation
+├── requirements.txt             # Dependencies list
+└── LICENSE                      # (optional) License for your code
+
+---
