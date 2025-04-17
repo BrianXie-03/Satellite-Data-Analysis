@@ -46,7 +46,7 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 │   └── visual.py                # VisualsPanel - renders matplotlib plots
 ├── scripts/
 │   ├── __init__.py
-│   └── verification.py         # Comparison class - handles comparison logic, QC filtering
+│   └── verification.py          # Comparison class - handles comparison logic, QC filtering
 └── README.md                    # Project documentation
 ```
 ---
