@@ -49,7 +49,5 @@ The application is equipped with dropdowns for selecting variables, optional QC 
 │   └── verification.py         # Comparison class - handles comparison logic, QC filtering
 ├── README.md                    # Project documentation
 ```
-├── requirements.txt             # Dependencies list
-└── LICENSE                      # (optional) License for your code
 
 ---
