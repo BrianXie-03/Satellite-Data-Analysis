@@ -1,14 +1,7 @@
 from functools import partial
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from ui_interface import Ui_MainWindow 
-from PyQt5.QtCore import Qt
-import numpy as np
-# import pandas as pd
-import cartopy.crs as ccrs
-import matplotlib.pyplot as plt
-import cartopy.feature as cfeature
 import sys
-import os
 from ui.data import DataPanel
 from ui.stats import StatPanel
 from ui.visual import VisualsPanel

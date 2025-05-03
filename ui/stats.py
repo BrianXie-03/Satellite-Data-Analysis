@@ -1,11 +1,8 @@
-from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QMainWindow, QGraphicsPixmapItem
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
 from PyQt5.QtGui import QPixmap
-import scipy
-import sys
 import xarray as xr
 import numpy as np
 from scipy.stats import pearsonr
-from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 
@@ -45,15 +42,25 @@ class StatPanel:
 
         if choice == 0:
             pass
+
         elif choice == 1:
-            self.ui.stat_result.setText(f"<b>RMSE:</b> {data[0]}")
+            self.ui.stat_result.setText(
+                f"<b>RMSE:</b> {data[0]:.3f}<br>"
+                f"<b>Correlation:</b> {data[1]:.3f}<br>"
+                f"<b>Standard Deviation:</b> {data[2]:.3f}<br>"
+                f"<b>Bias</b> {data[3]:.3f}"
+            )
 
         elif choice == 2:
-            self.ui.stat_result.setText(f"<b>Correlation:</b> {data[1]}")        
+            self.ui.stat_result.setText(f"<b>RMSE:</b> {data[0]:.3f}")
         elif choice == 3:
-            self.ui.stat_result.setText(f"<b>Standard Deviation:</b> {data[2]}")
+            self.ui.stat_result.setText(f"<b>Correlation:</b> {data[1]:.3f}")        
+        elif choice == 4:
+            self.ui.stat_result.setText(f"<b>Standard Deviation:</b> {data[2]:.3f}")
+        elif choice == 5:
+            self.ui.stat_result.setText(f"<b>Bias:</b> {data[3]:.3f}")
             
-        self.ui.stat_result.setStyleSheet("font-size: 16pt; font-family: Poppins;")
+        self.ui.stat_result.setStyleSheet("font-size: 10pt; font-family: Poppins;")
         self.ui.stat_result.setAlignment(Qt.AlignCenter)
 
     def handle_selection_3(self):
@@ -120,8 +127,10 @@ class StatPanel:
 
         ## Standard Deviation of differences
         std_dev = np.std(d1_clean - d2_clean)
+        
+        bias = np.mean(d1_clean - d2_clean)
 
-        return [rmse, correlation, std_dev]
+        return [rmse, correlation, std_dev, bias]
     
     def extract_bits(self, qc_data, start_bit, num_bits):
         qc_int = np.nan_to_num(qc_data, nan=0).astype(np.uint8)

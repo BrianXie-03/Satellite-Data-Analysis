@@ -543,7 +543,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>300</y>
+        <y>280</y>
         <width>220</width>
         <height>16</height>
        </rect>
@@ -564,7 +564,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>420</y>
+        <y>390</y>
         <width>171</width>
         <height>16</height>
        </rect>
@@ -610,7 +610,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>330</y>
+        <y>310</y>
         <width>121</width>
         <height>23</height>
        </rect>
@@ -618,6 +618,11 @@ p, li { white-space: pre-wrap; }
       <item>
        <property name="text">
         <string>Select Metric</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Show All</string>
        </property>
       </item>
       <item>
@@ -635,12 +640,17 @@ p, li { white-space: pre-wrap; }
         <string>Standard Deviation</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>Bias</string>
+       </property>
+      </item>
      </widget>
      <widget class="QComboBox" name="options_dropdown">
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>450</y>
+        <y>420</y>
         <width>141</width>
         <height>23</height>
        </rect>
@@ -695,7 +705,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>530</y>
+        <y>480</y>
         <width>80</width>
         <height>23</height>
        </rect>
@@ -707,10 +717,10 @@ p, li { white-space: pre-wrap; }
      <widget class="QTextEdit" name="stat_result">
       <property name="geometry">
        <rect>
-        <x>540</x>
-        <y>640</y>
-        <width>541</width>
-        <height>41</height>
+        <x>10</x>
+        <y>520</y>
+        <width>231</width>
+        <height>181</height>
        </rect>
       </property>
      </widget>
