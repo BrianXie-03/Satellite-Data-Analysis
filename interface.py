@@ -107,12 +107,12 @@ class MyApp(QMainWindow, Ui_MainWindow):
         file1 = self.fileLabel.text()
         file2 = self.fileLabel_2.text()
         results = self.cmp.compare_brf_files(file1, file2, output_dir="results/brf_analysis", projection=self.comboBox.currentText())
-        # refl, qc = results.items()
+        refl, qc = results.items()
         # # _,qc = qc1
-        # print(refl)
-        # print('\n')
+        print(refl)
+        print('\n')
         # # qc -> quality score (some general information) -> value_stats (bit information)
-        # print(qc)
+        print(qc)
 
 
 
